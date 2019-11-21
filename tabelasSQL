@@ -1,0 +1,22 @@
+users sql:
+ user id
+
+entradas sql eventos:
+ user id
+ event id
+ nome
+ begin date 
+ end date
+ color
+ tipo (periodicidade)
+ dias de ocorrência
+ notas
+ localização
+ data de ultima edição
+ alarme (segundos antes)
+
+tarefas sql:
+ tarefa id
+ user id 
+ nome
+ corpo
