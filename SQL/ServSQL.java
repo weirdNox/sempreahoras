@@ -8,7 +8,8 @@ public class ServSQL {
 	/* Para funcionar precisa ter o JDBC driver jar adicionado ao build path do projeto
 	 * Jar esta no ficheiro SQL que esta no projeto
 	 * Servidor db da feup nao tava a dar para aceder por isso criei noutro sitio
-	 * Credenciais acesso database estao no construtor desta classe */
+	 * Credenciais acesso database estao no construtor desta classe
+	 * https://www.elephantsql.com */
 	private Connection c;
 	private Statement stmt;
 	private ResultSet rs;
