@@ -4,12 +4,14 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class ServSQL {
 	/* Para funcionar precisa ter o JDBC driver jar adicionado ao build path do projeto
 	 * Jar esta no ficheiro SQL que esta no projeto
 	 * Servidor db da feup nao tava a dar para aceder por isso criei noutro sitio
-	 * Credenciais acesso database estao no construtor desta classe
-	 * https://www.elephantsql.com */
+	 * Credenciais acesso database estao no construtor desta classe */
 	private Connection c;
 	private Statement stmt;
 	private ResultSet rs;
@@ -38,13 +40,13 @@ public class ServSQL {
 			"(USER_ID INTEGER NOT NULL," +
 			" EVENT_ID INTEGER NOT NULL," +
 			" NOME TEXT NOT NULL," +
-			" DATA_INICIO TIMESTAMP," +
-			" DATA_FIM TIMESTAMP," +
+			" DATA_INICIO TEXT," +
+			" DATA_FIM TEXT," +
 			" TIPO TEXT," +
 			" DIAS TEXT," +
 			" NOTAS TEXT," +
 			" LOCAL TEXT," +
-			" LAST_EDIT TIMESTAMP NOT NULL," +
+			" LAST_EDIT TEXT NOT NULL," +
 			" ALARME INTEGER," +
 			" COR TEXT," + 
 			"UNIQUE (USER_ID, EVENT_ID)" +
@@ -72,29 +74,40 @@ public class ServSQL {
 		}
 	}
 	
-	public void addEvento(ArrayList<Evento> eventos, Evento novo) { // Recebe array eventos servidor e um evento e adiciona ao array servidor e a database
+	public String addEvento(String json, int event_id) { // Recebe array eventos servidor e um evento e adiciona ao array servidor e a database
+		String returne;
+		JSONObject obj;
 		try {
-			String sql = "INSERT INTO EVENTOS (USER_ID,EVENT_ID,NOME,DATA_INICIO,DATA_FIM,TIPO,DIAS,NOTAS,LOCAL,LAST_EDIT,ALARME,COR) VALUES ("
-			+ novo.user_id + ", "
-			+ novo.event_id + ", "
-			+ "'" + novo.nome + "', "
-			+ "'" + novo.data_fim + "', "
-			+ "'" + novo.data_inicio + "', "
-			+ "'" + novo.tipo + "', "
-			+ "'" + novo.dias + "', "
-			+ "'" + novo.notas + "', "
-			+ "'" + novo.local + "', "
-			+ "'" + novo.last_edit + "', "
-			+ novo.alarme + ", "
-			+ "'" + novo.cor + "'"
-			+ ");";
-			stmt.executeUpdate(sql);
-			eventos.add(novo);
-	        
-		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-    		System.exit(0);
+			obj = new JSONObject(json);
+			try {
+				String sql = "INSERT INTO EVENTOS (USER_ID,EVENT_ID,NOME,DATA_INICIO,DATA_FIM,TIPO,DIAS,NOTAS,LOCAL,LAST_EDIT,ALARME,COR) VALUES ("
+				+ obj.getInt("user_id") + ", "
+				+ event_id + ", "
+				+ "'" + obj.getString("nome") + "', "
+				+ "'" + obj.getString("data_inicio") + "', "
+				+ "'" + obj.getString("data_fim") + "', "
+				+ "'" + obj.getString("tipo") + "', "
+				+ "'" + obj.getString("dias") + "', "
+				+ "'" + obj.getString("notas") + "', "
+				+ "'" + obj.getString("local") + "', "
+				+ "'" + obj.getString("last_edit") + "', "
+				+ obj.getInt("alarme") + ", "
+				+ "'" + obj.getString("cor") + "'"
+				+ ");";
+				stmt.executeUpdate(sql);
+		        
+			} catch ( Exception e ) {
+				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+	    		System.exit(0);
+	    		returne = "mal";
+			}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			returne = "mal";
 		}
+		event_id++;
+		returne = "bem";
+		return returne;
 	}
 	
 	public void delEvento(ArrayList<Evento> eventos, Evento del) { // Recebe array eventos servidor e um evento e retira ao array servidor e a database
