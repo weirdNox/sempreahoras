@@ -36,6 +36,10 @@
                     android:textSize="18sp"
                     android:textStyle="bold" />
             </androidx.appcompat.widget.Toolbar>
+
+            <com.sempreahoras.app.EventsView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -58,8 +62,6 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:menu="@menu/main" >
-
-    </com.google.android.material.navigation.NavigationView>
+        app:menu="@menu/main" />
 
 </androidx.drawerlayout.widget.DrawerLayout>
