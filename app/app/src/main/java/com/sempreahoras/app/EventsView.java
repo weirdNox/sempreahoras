@@ -1,11 +1,14 @@
 package com.sempreahoras.app;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.text.TextPaint;
@@ -108,6 +111,8 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         if(maxScrollY < 0) {
             maxScrollY = 0;
         }
+
+        invalidate();
     }
 
     @Override
@@ -118,39 +123,24 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         canvas.drawLine(hourTextWidth, 0, hourTextWidth, height, paint);
         canvas.translate(0, -scrollY);
 
-        // Grid
         for(int hour = 1; hour < 24; ++hour) {
             int y = hourHeight*hour;
             canvas.drawLine(hourTextWidth, y, width, y, paint);
             canvas.drawText(String.format("%02d:00", hour), hourTextPadding, y+hourTextHeight/2, textPaint);
         }
 
-        if(selectedHour >= 0) {
-            paint.setColor(Color.rgb(224, 137, 29));
-            canvas.drawRect(hourTextWidth, selectedHour*hourHeight, width, (selectedHour+1)*hourHeight, paint);
-        }
-
         if(events != null) {
             for(Event e : events) {
-                int start = e.startDate.get(Calendar.HOUR_OF_DAY)*60*60 + e.startDate.get(Calendar.MINUTE)*60 + e.startDate.get(Calendar.SECOND);
-                float top = (float) start / (24*60*60) * 24*hourHeight - 1;
-
-                int end = e.endDate.get(Calendar.HOUR_OF_DAY)*60*60 + e.endDate.get(Calendar.MINUTE)*60 + e.endDate.get(Calendar.SECOND);
-                float bottom = (float) end / (24*60*60) * 24*hourHeight - 1;
-
-                float availWidth = width-hourTextWidth;
-                float w = (float) availWidth/e.numColumns;
-                float left = hourTextWidth + w*e.columnIdx + 4;
-                float right = left + w - 8;
+                RectF rect = getEventRect(e);
 
                 paint.setStyle(Paint.Style.STROKE);
                 paint.setColor(Color.BLACK);
                 paint.setStrokeWidth(5);
-                canvas.drawRect(left, top, right, bottom, paint);
+                canvas.drawRect(rect, paint);
 
                 paint.setStyle(Paint.Style.FILL);
                 paint.setColor(Color.CYAN);
-                canvas.drawRect(left, top, right, bottom, paint);
+                canvas.drawRect(rect, paint);
             }
         }
 
@@ -163,6 +153,26 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
             canvas.drawLine(0, y, width, y, paint);
             paint.setStrokeWidth(1);
         }
+
+        if(selectedHour >= 0) {
+            paint.setColor(Color.argb(100, 224, 137, 29));
+            canvas.drawRect(hourTextWidth, selectedHour*hourHeight, width, (selectedHour+1)*hourHeight, paint);
+        }
+    }
+
+    private RectF getEventRect(Event e) {
+        int start = e.startDate.get(Calendar.HOUR_OF_DAY)*60*60 + e.startDate.get(Calendar.MINUTE)*60 + e.startDate.get(Calendar.SECOND);
+        float top = (float) start / (24*60*60) * 24*hourHeight - 1;
+
+        int end = e.endDate.get(Calendar.HOUR_OF_DAY)*60*60 + e.endDate.get(Calendar.MINUTE)*60 + e.endDate.get(Calendar.SECOND);
+        float bottom = (float) end / (24*60*60) * 24*hourHeight - 1;
+
+        float availWidth = width-hourTextWidth;
+        float w = (float) availWidth/e.numColumns;
+        float left = hourTextWidth + w*e.columnIdx + 4;
+        float right = left + w - 8;
+
+        return new RectF(left, top, right, bottom);
     }
 
     @Override
@@ -178,15 +188,26 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
     }
 
     @Override
-    public boolean onSingleTapUp(MotionEvent e) {
-        if(!scrolling) {
-            selectedHour = (int)((scrollY + e.getY()) / hourHeight);
-            if(selectedHour >= 24) {
-                selectedHour = 23;
+    public boolean onSingleTapUp(MotionEvent event) {
+        boolean handled = false;
+
+        for(Event e : events) {
+            RectF rect = getEventRect(e);
+            if(rect.contains(event.getX(), scrollY + event.getY())) {
+                ((DayActivity)getContext()).editEvent(e);
+                handled = true;
+                break;
             }
         }
 
-        invalidate();
+        if(!handled && !scrolling) {
+            selectedHour = (int)((scrollY + event.getY()) / hourHeight);
+            if(selectedHour >= 24) {
+                selectedHour = 23;
+            }
+
+            invalidate();
+        }
 
         return true;
     }
@@ -260,11 +281,11 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
 
         if(events != null) {
             Collections.sort(events, new Comparator<Event>() {
-                @Override
-                public int compare(Event o1, Event o2) {
-                    return o1.compareTo(o2);
-                }
-            });
+                    @Override
+                    public int compare(Event o1, Event o2) {
+                        return o1.compareTo(o2);
+                    }
+                });
 
             int max = 1;
             ArrayList<Event> group = new ArrayList<>();

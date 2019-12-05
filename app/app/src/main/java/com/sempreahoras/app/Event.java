@@ -1,11 +1,21 @@
 package com.sempreahoras.app;
 
+import android.graphics.Color;
+
 import java.util.Calendar;
 
 public class Event {
+    int id;
+
     String title;
+
     Calendar startDate;
     Calendar endDate;
+
+    String description;
+
+    Color color;
+    String location;
 
     public int numColumns;
     public int columnIdx;

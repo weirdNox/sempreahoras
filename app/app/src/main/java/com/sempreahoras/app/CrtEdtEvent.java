@@ -8,11 +8,13 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class CrtEdtEvent extends AppCompatActivity {
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_crt_edt_event);
+
+        Event e = DayActivity.eventToEdit;
+        e.title = "asdf";
 
         //Save Button
 

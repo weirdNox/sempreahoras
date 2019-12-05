@@ -87,7 +87,7 @@ public class DayActivity extends AppCompatActivity implements NavigationView.OnN
 
         ArrayList<Event> eventsForToday = new ArrayList<>();
         eventsForToday.add(new Event("Olá", 2019, 12, 5, 0, 0, 0,
-                                                  2019, 12, 5, 1, 30, 0));
+                                            2019, 12, 5, 1, 30, 0));
 
         eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 7, 0, 0,
                                                   2019, 12, 5, 8, 30, 0));
@@ -129,7 +129,7 @@ public class DayActivity extends AppCompatActivity implements NavigationView.OnN
                                                   2019, 12, 5, 9, 0, 0));
 
         eventsForToday.add(new Event("Adeus", 2019, 12, 5, 21, 0, 0,
-                                                  2019, 12, 5, 21, 30, 0));
+                                              2019, 12, 5, 21, 30, 0));
 
         events.append(getDayNumber(currentDate), eventsForToday);
 
@@ -200,5 +200,19 @@ public class DayActivity extends AppCompatActivity implements NavigationView.OnN
 
     static public int getDayNumber(Calendar cal) {
         return (int)(cal.getTimeInMillis() / millisInDays);
+    }
+
+    public static Event eventToEdit;
+    public void editEvent(Event e) {
+        eventToEdit = e;
+        Intent intent = new Intent(this, CrtEdtEvent.class);
+        startActivityForResult(intent, 0);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d(null, eventToEdit.title);
+        eventToEdit = null;
     }
 }
