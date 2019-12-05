@@ -1,7 +1,9 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.SQLException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.sql.PreparedStatement;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,14 +14,13 @@ public class ServSQL {
 	 * Servidor db da feup nao tava a dar para aceder por isso criei noutro sitio
 	 * Credenciais acesso database estao no construtor desta classe */
 	private Connection c;
-	private Statement stmt;
+	private PreparedStatement pstmt;
 	
 	public ServSQL() { // Construtor abre conexão ao servidor DB
 		try {
 			Class.forName("org.postgresql.Driver");
 			c = DriverManager.getConnection("jdbc:postgresql://rogue.db.elephantsql.com:5432/csfetqrr",
 					"csfetqrr", "pIFggVM5LgRjNAkMqbvRg-RqhpyshduP");
-			stmt = c.createStatement();
 			}
 		catch (Exception e) {
 			System.out.println("oops");
@@ -30,26 +31,35 @@ public class ServSQL {
 		System.out.println("Opened database successfully");
 	}
 	
+	public void close() {
+		try {
+			c.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void tableEventos() { // Apaga e cria uma nova tabela eventos
 		try {
-			String sql = "DROP TABLE EVENTOS";
-			stmt.executeUpdate(sql);
-			sql = "CREATE TABLE EVENTOS " +
-			"(USER_ID INTEGER NOT NULL," +
-			" EVENT_ID INTEGER NOT NULL," +
-			" NOME TEXT NOT NULL," +
-			" DATA_INICIO TEXT," +
-			" DATA_FIM TEXT," +
-			" TIPO TEXT," +
-			" DIAS TEXT," +
-			" NOTAS TEXT," +
-			" LOCAL TEXT," +
-			" LAST_EDIT TEXT NOT NULL," +
-			" ALARME INTEGER," +
-			" COR TEXT," + 
-			"UNIQUE (USER_ID, EVENT_ID)" +
-			")";
-	        stmt.executeUpdate(sql);
+			pstmt = c.prepareStatement(
+					"DROP TABLE EVENTOS");
+			pstmt.executeUpdate();
+			pstmt = c.prepareStatement("CREATE TABLE EVENTOS " +
+				"(USER_ID INTEGER NOT NULL," +
+				" EVENT_ID INTEGER NOT NULL," +
+				" NOME TEXT NOT NULL," +
+				" DATA_INICIO TEXT," +
+				" DATA_FIM TEXT," +
+				" TIPO TEXT," +
+				" DIAS TEXT," +
+				" NOTAS TEXT," +
+				" LOCAL TEXT," +
+				" LAST_EDIT TEXT NOT NULL," +
+				" ALARME INTEGER," +
+				" COR TEXT," + 
+				"UNIQUE (USER_ID, EVENT_ID)" +
+				")");
+	        pstmt.executeUpdate();
 			
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
@@ -59,12 +69,14 @@ public class ServSQL {
 	
 	public void tableUsers() { // Apaga e cria uma nova tabela Users
 		try {
-			String sql = "DROP TABLE USERS";
-			stmt.executeUpdate(sql);
-			sql = "CREATE TABLE USERS " +
-			"(USER_ID INTEGER PRIMARY KEY NOT NULL" +
-			")";
-	        stmt.executeUpdate(sql);
+			pstmt = c.prepareStatement(
+					"DROP TABLE EVENTOS");
+			pstmt.executeUpdate();
+			pstmt = c.prepareStatement(
+					"CREATE TABLE USERS " +
+					"(USER_ID INTEGER PRIMARY KEY NOT NULL" +
+					")");
+	        pstmt.executeUpdate();
 			
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
@@ -72,26 +84,25 @@ public class ServSQL {
 		}
 	}
 	
-	public String addEvento(String json, int event_id) { // Recebe string json do cliente e adiciona evento
+	public String addEvento(String json, AtomicInteger event_id) { // Recebe string json do cliente e adiciona evento
 		JSONObject obj;
 		try {
 			obj = new JSONObject(json);
 			try {
-				String sql = "INSERT INTO EVENTOS (USER_ID,EVENT_ID,NOME,DATA_INICIO,DATA_FIM,TIPO,DIAS,NOTAS,LOCAL,LAST_EDIT,ALARME,COR) VALUES ("
-				+ obj.getInt("user_id") + ", "
-				+ event_id + ", "
-				+ "'" + obj.getString("nome") + "', "
-				+ "'" + obj.getString("data_inicio") + "', "
-				+ "'" + obj.getString("data_fim") + "', "
-				+ "'" + obj.getString("tipo") + "', "
-				+ "'" + obj.getString("dias") + "', "
-				+ "'" + obj.getString("notas") + "', "
-				+ "'" + obj.getString("local") + "', "
-				+ "'" + obj.getString("last_edit") + "', "
-				+ obj.getInt("alarme") + ", "
-				+ "'" + obj.getString("cor") + "'"
-				+ ");";
-				stmt.executeUpdate(sql);
+				pstmt = c.prepareStatement("INSERT INTO EVENTOS (USER_ID,EVENT_ID,NOME,DATA_INICIO,DATA_FIM,TIPO,DIAS,NOTAS,LOCAL,LAST_EDIT,ALARME,COR) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				pstmt.setInt(1, obj.getInt("user_id"));
+				pstmt.setInt(2, event_id.get());
+				pstmt.setString(3, obj.getString("nome"));
+				pstmt.setString(4, obj.getString("data_inicio"));
+				pstmt.setString(5, obj.getString("data_fim"));
+				pstmt.setString(6, obj.getString("tipo"));
+				pstmt.setString(7, obj.getString("dias"));
+				pstmt.setString(8, obj.getString("notas"));
+				pstmt.setString(9, obj.getString("local"));
+				pstmt.setString(10, obj.getString("last_edit"));
+				pstmt.setInt(11, obj.getInt("alarme"));
+				pstmt.setString(12, obj.getString("cor"));
+				pstmt.executeUpdate();
 		        
 			} catch ( Exception e ) {
 				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
@@ -109,8 +120,10 @@ public class ServSQL {
 		try {
 			obj = new JSONObject(json);
 			try {
-				String sql = "DELETE from EVENTOS where USER_ID = " + obj.getInt("user_id") + " AND EVENT_ID = " + obj.getInt("event_id") + ";";
-				stmt.executeUpdate(sql);
+				pstmt = c.prepareStatement("DELETE from EVENTOS where USER_ID = ? AND EVENT_ID = ?");
+				pstmt.setInt(1, obj.getInt("user_id"));
+				pstmt.setInt(2, obj.getInt("event_id"));
+				pstmt.executeUpdate();
 		        
 			} catch ( Exception e ) {
 				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
@@ -132,7 +145,9 @@ public class ServSQL {
 			obj = new JSONObject(json);
 			eventos = new JSONObject();
 			try {
-				ResultSet rs = stmt.executeQuery( "SELECT * FROM public.eventos WHERE user_id = " + obj.getInt("user_id") );
+				pstmt = c.prepareStatement( "SELECT * FROM public.eventos WHERE user_id = ?" );
+				pstmt.setInt(1, obj.getInt("user_id"));
+				ResultSet rs = pstmt.executeQuery();
 		        while ( rs.next() ) {
 		        	aux = new JSONObject();
 	    			aux.put("user_id", rs.getInt("user_id"));
@@ -168,10 +183,9 @@ public class ServSQL {
 		try {
 			obj = new JSONObject(json);
 			try {
-				String sql = "INSERT INTO USERS (USER_ID) VALUES ("
-				+ obj.getInt("user_id")
-				+ ");";
-				stmt.executeUpdate(sql);
+				pstmt = c.prepareStatement("INSERT INTO USERS (USER_ID) VALUES (?)");
+				pstmt.setInt(1, obj.getInt("user_id"));
+				pstmt.executeUpdate();
 		        
 			} catch ( Exception e ) {
 				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
@@ -189,10 +203,12 @@ public class ServSQL {
 		try {
 			obj = new JSONObject(json);
 			try {
-				String sql = "DELETE FROM eventos WHERE user_id = " + obj.getInt("user_id");
-				stmt.executeUpdate(sql);
-				sql = "DELETE FROM users WHERE user_id = " + obj.getInt("user_id");
-				stmt.executeUpdate(sql);
+				pstmt = c.prepareStatement("DELETE FROM eventos WHERE user_id = ?");
+				pstmt.setInt(1, obj.getInt("user_id"));
+				pstmt.executeUpdate();
+				pstmt = c.prepareStatement("DELETE FROM users WHERE user_id = ?");
+				pstmt.setInt(1, obj.getInt("user_id"));
+				pstmt.executeUpdate();
 				
 			} catch ( Exception e ) {
 				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
@@ -208,7 +224,8 @@ public class ServSQL {
 	public int getEvent_id() {
 		int event_id = 0;
 		try {
-			ResultSet rs = stmt.executeQuery( "SELECT MAX(event_id) FROM public.eventos AS max");
+			pstmt = c.prepareStatement( "SELECT MAX(event_id) FROM public.eventos AS max" );
+			ResultSet rs = pstmt.executeQuery();
 	        while ( rs.next() ) {
 	        	event_id = rs.getInt("max") + 1;
 	        }
@@ -224,19 +241,19 @@ public class ServSQL {
 		try {
 			obj = new JSONObject(json);
 			try {
-				String sql = "UPDATE EVENTOS SET nome = "
-				+ "'" + obj.getString("nome") + "', data_inicio = "
-				+ "'" + obj.getString("data_inicio") + "', data_fim = "
-				+ "'" + obj.getString("data_fim") + "', tipo = "
-				+ "'" + obj.getString("tipo") + "', dias = "
-				+ "'" + obj.getString("dias") + "', notas = "
-				+ "'" + obj.getString("notas") + "', local = "
-				+ "'" + obj.getString("local") + "', last_edit = "
-				+ "'" + obj.getString("last_edit") + "', alarme = "
-				+ obj.getInt("alarme") + ", cor = "
-				+ "'" + obj.getString("cor") + "'"
-				+ " WHERE event_id = " + obj.getInt("event_id") + ";";
-				stmt.executeUpdate(sql);
+				pstmt = c.prepareStatement("UPDATE EVENTOS SET nome = ?, data_inicio = ?, data_fim = ?, tipo = ?, dias = ?, notas = ?, local = ?, last_edit = ?, alarme = ?, cor = ? WHERE event_id = ?");
+				pstmt.setString(1, obj.getString("nome"));
+				pstmt.setString(2, obj.getString("data_inicio"));
+				pstmt.setString(3, obj.getString("data_fim"));
+				pstmt.setString(4, obj.getString("tipo"));
+				pstmt.setString(5, obj.getString("dias"));
+				pstmt.setString(6, obj.getString("notas"));
+				pstmt.setString(7, obj.getString("local"));
+				pstmt.setString(8, obj.getString("last_edit"));
+				pstmt.setInt(9, obj.getInt("alarme"));
+				pstmt.setString(10, obj.getString("cor"));
+				pstmt.setInt(11, obj.getInt("event_id"));
+				pstmt.executeUpdate();
 		        
 			} catch ( Exception e ) {
 				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
