@@ -14,7 +14,7 @@ public class Event {
 
     String description;
 
-    Color color;
+    int color = Color.rgb(232, 98, 88);
     String location;
 
     public int numColumns;

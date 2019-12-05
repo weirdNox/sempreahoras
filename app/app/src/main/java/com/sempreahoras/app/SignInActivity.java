@@ -69,15 +69,15 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
 
     private void updateUI(GoogleSignInAccount account) {
         if (account != null) {
-            Intent intent = new Intent(this, DayActivity.class);
-            intent.putExtra(DayActivity.GOOGLE_ACC, account);
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra(MainActivity.GOOGLE_ACC, account);
             startActivity(intent);
             finish();
         }
     }
 
     public void testSignIn(View v) {
-        Intent intent = new Intent(this, DayActivity.class);
+        Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
         finish();
     }

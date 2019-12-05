@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                                     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+                                                     android:layout_height="match_parent"
+                                                     android:fitsSystemWindows="true">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|center_vertical"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    tools:context=".Timer">
+
+        <EditText
+            android:id="@+id/seltime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/timeview"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="227dp"
+            android:layout_marginBottom="185dp"
+            android:hint="Min"
+            android:inputType="number"
+            android:text="00"
+            android:textAlignment="center"
+            android:textColor="@android:color/black"
+            android:textSize="20dp" />
+
+        <EditText
+            android:id="@+id/seltime2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/timeview"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="142dp"
+            android:layout_marginBottom="185dp"
+            android:hint="Sec"
+            android:inputType="number"
+            android:text="00"
+            android:textAlignment="center"
+            android:textColor="@android:color/black"
+            android:textSize="20dp" />
+
+      <TextView
+          android:id="@+id/timeview"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="00:00"
+          android:textColor="@android:color/black"
+          android:textSize="60sp"
+          android:layout_centerHorizontal="true"
+          android:layout_centerVertical="true"
+          />
+
+      <Button
+          android:id="@+id/sbuttontime"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_below="@+id/timeview"
+          android:layout_centerHorizontal="true"
+          android:backgroundTint="#99B6A5A5"
+          android:layout_marginStart="10dp"
+          android:text="Start" />
+
+      <Button
+          android:id="@+id/rbuttontime"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_below="@id/sbuttontime"
+          android:layout_centerHorizontal="true"
+          android:layout_marginStart="10dp"
+          android:backgroundTint="#99B6A5A5"
+          android:text="Reset"
+          android:visibility="invisible"
+          tools:visibility="visible"
+          />
+
+      <TextView
+          android:id="@+id/textView2"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_above="@+id/timeview"
+          android:layout_centerHorizontal="true"
+          android:layout_marginEnd="21dp"
+          android:layout_marginBottom="192dp"
+          android:layout_toStartOf="@+id/seltime2"
+          android:text=":"
+          android:textSize="20sp" />
+    </RelativeLayout>
+  </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -13,9 +13,6 @@ public class CrtEdtEvent extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_crt_edt_event);
 
-        Event e = DayActivity.eventToEdit;
-        e.title = "asdf";
-
         //Save Button
 
         Button saveButton = (Button)findViewById(R.id.savebutton);

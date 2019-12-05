@@ -11,6 +11,8 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.text.Layout;
+import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -35,6 +37,7 @@ import java.util.ListIterator;
 
 public class EventsView extends View implements GestureDetector.OnGestureListener {
     private float density = getResources().getDisplayMetrics().density;
+    float hourTextSize = 15*density;
 
     private float width;
     private float height;
@@ -54,7 +57,7 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
     private int selectedHour = -1;
 
     private Paint paint = new Paint();
-    private Paint textPaint = new Paint();
+    private TextPaint textPaint = new TextPaint();
 
     private Handler handler;
 
@@ -86,7 +89,7 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         paint.setAntiAlias(true);
 
         textPaint.setAntiAlias(true);
-        textPaint.setTextSize(15*density);
+        textPaint.setTextSize(hourTextSize);
 
         Rect hourBounds = new Rect();
         textPaint.getTextBounds("00:00", 0, 5, hourBounds);
@@ -123,12 +126,14 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         canvas.drawLine(hourTextWidth, 0, hourTextWidth, height, paint);
         canvas.translate(0, -scrollY);
 
+        textPaint.setTextSize(hourTextSize);
         for(int hour = 1; hour < 24; ++hour) {
             int y = hourHeight*hour;
             canvas.drawLine(hourTextWidth, y, width, y, paint);
             canvas.drawText(String.format("%02d:00", hour), hourTextPadding, y+hourTextHeight/2, textPaint);
         }
 
+        textPaint.setTextSize(10*density);
         if(events != null) {
             for(Event e : events) {
                 RectF rect = getEventRect(e);
@@ -139,12 +144,29 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
                 canvas.drawRect(rect, paint);
 
                 paint.setStyle(Paint.Style.FILL);
-                paint.setColor(Color.CYAN);
+                paint.setColor(e.color);
                 canvas.drawRect(rect, paint);
+
+                if(rect.width() >= 22.5*density) {
+                    canvas.save();
+
+                    rect.top    += 5;
+                    rect.bottom -= 5;
+                    rect.left   += 5;
+                    rect.right  -= 5;
+                    canvas.clipRect(rect);
+
+                    canvas.translate(rect.left, rect.top);
+
+                    StaticLayout textLayout = new StaticLayout(e.title, textPaint, Math.round(rect.width()), Layout.Alignment.ALIGN_NORMAL, 1, 0, false);
+                    textLayout.draw(canvas);
+
+                    canvas.restore();
+                }
             }
         }
 
-        if(DayActivity.getDayNumber(date) == DayActivity.getDayNumber(Calendar.getInstance())) {
+        if(MainActivity.getDayNumber(date) == MainActivity.getDayNumber(Calendar.getInstance())) {
             paint.setColor(Color.BLUE);
             paint.setStrokeWidth(5);
             Calendar now = Calendar.getInstance();
@@ -194,7 +216,8 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         for(Event e : events) {
             RectF rect = getEventRect(e);
             if(rect.contains(event.getX(), scrollY + event.getY())) {
-                ((DayActivity)getContext()).editEvent(e);
+                // TODO
+                //((DayActivity)getContext()).editEvent(e);
                 handled = true;
                 break;
             }
@@ -204,7 +227,7 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
             selectedHour = (int)((scrollY + event.getY()) / hourHeight);
             if(selectedHour >= 24) {
                 selectedHour = 23;
-            }
+             }
 
             invalidate();
         }
