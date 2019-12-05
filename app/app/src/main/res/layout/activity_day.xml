@@ -38,6 +38,7 @@
             </androidx.appcompat.widget.Toolbar>
 
             <com.sempreahoras.app.EventsView
+                android:id="@+id/events"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
@@ -61,7 +62,6 @@
         android:id="@+id/navigation"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_gravity="start"
-        app:menu="@menu/main" />
+        android:layout_gravity="start" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

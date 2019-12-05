@@ -5,8 +5,11 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -27,18 +30,27 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
 import java.text.DateFormat;
+import java.time.Month;
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-
+import java.util.HashMap;
 
 public class DayActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     public static final String GOOGLE_ACC = "google_account";
+
+    private final int DAY = 0;
+    private final int WEEK = 1;
+    private final int MONTH = 2;
+    private final int COUNTDOWN = 3;
+    private final int TIMER = 4;
 
     protected DateFormat dateFormat = DateFormat.getDateInstance();
     protected Calendar currentDate = Calendar.getInstance();
 
     private String userId = "testId";
+
+    private static final long millisInDays = 86400000L;
+    private SparseArray<ArrayList<Event>> events = new SparseArray<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +74,64 @@ public class DayActivity extends AppCompatActivity implements NavigationView.OnN
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.navigation);
         navigationView.setNavigationItemSelectedListener(this);
+        Menu menu = navigationView.getMenu();
+        SubMenu sub = menu.addSubMenu("View type");
+        sub.add(0, DAY, Menu.NONE, "Day");
+        sub.add(0, WEEK, Menu.NONE, "Week");
+        sub.add(0, MONTH, Menu.NONE, "Month");
+
+        menu.add(0, TIMER, Menu.NONE, "Timer");
+        menu.add(0, COUNTDOWN, Menu.NONE, "Countdown");
+
+        ((EventsView)findViewById(R.id.events)).floatingButton = findViewById(R.id.floatingActionButton);
+
+        ArrayList<Event> eventsForToday = new ArrayList<>();
+        eventsForToday.add(new Event("Olá", 2019, 12, 5, 0, 0, 0,
+                                                  2019, 12, 5, 1, 30, 0));
+
+        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 7, 0, 0,
+                                                  2019, 12, 5, 8, 30, 0));
+
+        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 7, 30, 0,
+                                                  2019, 12, 5, 8, 45, 0));
+
+        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 30, 0,
+                                                  2019, 12, 5, 9, 0, 0));
+
+        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0,
+                                                  2019, 12, 5, 9, 0, 0));
+
+        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0,
+                                                  2019, 12, 5, 9, 0, 0));
+
+        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0,
+                                                  2019, 12, 5, 9, 0, 0));
+
+        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0,
+                                                  2019, 12, 5, 9, 0, 0));
+
+        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0,
+                                                  2019, 12, 5, 9, 0, 0));
+
+        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0,
+                                                  2019, 12, 5, 9, 0, 0));
+
+        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0,
+                                                  2019, 12, 5, 9, 0, 0));
+
+        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0,
+                                                  2019, 12, 5, 9, 0, 0));
+
+        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0,
+                                                  2019, 12, 5, 9, 0, 0));
+
+        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0,
+                                                  2019, 12, 5, 9, 0, 0));
+
+        eventsForToday.add(new Event("Adeus", 2019, 12, 5, 21, 0, 0,
+                                                  2019, 12, 5, 21, 30, 0));
+
+        events.append(getDayNumber(currentDate), eventsForToday);
 
         updateUi();
     }
@@ -74,10 +144,11 @@ public class DayActivity extends AppCompatActivity implements NavigationView.OnN
     DatePickerDialog.OnDateSetListener currentDateChangeListener = new DatePickerDialog.OnDateSetListener() {
         @Override
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-            currentDate.set(Calendar.YEAR, year);
-            currentDate.set(Calendar.MONTH, monthOfYear);
-            currentDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-            updateUi();
+        currentDate.set(Calendar.YEAR, year);
+        currentDate.set(Calendar.MONTH, monthOfYear);
+        currentDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+        updateUi();
         }
     };
 
@@ -88,26 +159,33 @@ public class DayActivity extends AppCompatActivity implements NavigationView.OnN
     protected void updateUi() {
         Button dateButton = findViewById(R.id.date_button);
         dateButton.setText(dateFormat.format(currentDate.getTime()));
+
+        ArrayList<Event> events = this.events.get(getDayNumber(currentDate));
+        EventsView view = (EventsView)findViewById(R.id.events);
+        view.setEvents(events);
+        view.setCal(currentDate);
+
+//        Log.d(null, ""+currentDate.get(Calendar.WEEK_OF_YEAR));
+//        currentDate.set(Calendar.DAY_OF_WEEK, currentDate.getFirstDayOfWeek());
     }
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-           case R.id.menu_hello: {
-               FloatingActionButton b = findViewById(R.id.floatingActionButton);
-               if(b.isOrWillBeShown()) {
-                    b.hide();
-               }
-               else {
-                   b.show();
-               }
+            case DAY: {
+                Log.d(null, "Day");
+            } break;
 
-               break;
-            }
+            case WEEK: {
+                Log.d(null, "Week");
+            } break;
+
+            case MONTH: {
+                Log.d(null, "Month");
+            } break;
 
             default: {
-                return false;
-            }
+            } break;
         }
 
         DrawerLayout d = findViewById(R.id.drawer_layout);
@@ -118,5 +196,9 @@ public class DayActivity extends AppCompatActivity implements NavigationView.OnN
     public void createEvent(View v) {
         Intent intent = new Intent(this, CrtEdtEvent.class);
         startActivity(intent);
+    }
+
+    static public int getDayNumber(Calendar cal) {
+        return (int)(cal.getTimeInMillis() / millisInDays);
     }
 }

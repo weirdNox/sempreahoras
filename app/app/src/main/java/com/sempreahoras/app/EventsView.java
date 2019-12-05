@@ -20,7 +20,15 @@ import android.widget.Scroller;
 import androidx.annotation.Nullable;
 import androidx.core.view.GestureDetectorCompat;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import org.w3c.dom.Text;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.ListIterator;
 
 public class EventsView extends View implements GestureDetector.OnGestureListener {
     private float density = getResources().getDisplayMetrics().density;
@@ -46,6 +54,10 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
     private Paint textPaint = new Paint();
 
     private Handler handler;
+
+    private ArrayList<Event> events;
+
+    public FloatingActionButton floatingButton;
 
     public EventsView(Context context) {
         super(context);
@@ -109,13 +121,47 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         // Grid
         for(int hour = 1; hour < 24; ++hour) {
             int y = hourHeight*hour;
-            canvas.drawLine(hourTextWidth, y, getWidth(), y, paint);
+            canvas.drawLine(hourTextWidth, y, width, y, paint);
             canvas.drawText(String.format("%02d:00", hour), hourTextPadding, y+hourTextHeight/2, textPaint);
         }
 
         if(selectedHour >= 0) {
             paint.setColor(Color.rgb(224, 137, 29));
             canvas.drawRect(hourTextWidth, selectedHour*hourHeight, width, (selectedHour+1)*hourHeight, paint);
+        }
+
+        if(events != null) {
+            for(Event e : events) {
+                int start = e.startDate.get(Calendar.HOUR_OF_DAY)*60*60 + e.startDate.get(Calendar.MINUTE)*60 + e.startDate.get(Calendar.SECOND);
+                float top = (float) start / (24*60*60) * 24*hourHeight - 1;
+
+                int end = e.endDate.get(Calendar.HOUR_OF_DAY)*60*60 + e.endDate.get(Calendar.MINUTE)*60 + e.endDate.get(Calendar.SECOND);
+                float bottom = (float) end / (24*60*60) * 24*hourHeight - 1;
+
+                float availWidth = width-hourTextWidth;
+                float w = (float) availWidth/e.numColumns;
+                float left = hourTextWidth + w*e.columnIdx + 4;
+                float right = left + w - 8;
+
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setColor(Color.BLACK);
+                paint.setStrokeWidth(5);
+                canvas.drawRect(left, top, right, bottom, paint);
+
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(Color.CYAN);
+                canvas.drawRect(left, top, right, bottom, paint);
+            }
+        }
+
+        if(DayActivity.getDayNumber(date) == DayActivity.getDayNumber(Calendar.getInstance())) {
+            paint.setColor(Color.BLUE);
+            paint.setStrokeWidth(5);
+            Calendar now = Calendar.getInstance();
+            int nowTime = now.get(Calendar.HOUR_OF_DAY)*60*60 + now.get(Calendar.MINUTE)*60 + now.get(Calendar.SECOND);
+            float y = (float)nowTime /  (24*60*60) * 24*hourHeight - 1;
+            canvas.drawLine(0, y, width, y, paint);
+            paint.setStrokeWidth(1);
         }
     }
 
@@ -156,6 +202,13 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         }
         else if(scrollY > maxScrollY) {
             scrollY = maxScrollY;
+        }
+
+        if(distanceY > 0) {
+            floatingButton.hide();
+        }
+        else {
+            floatingButton.show();
         }
 
         invalidate();
@@ -200,5 +253,66 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
 
             handler.post(this);
         }
+    }
+
+    public void setEvents(ArrayList<Event> events) {
+        this.events = events;
+
+        if(events != null) {
+            Collections.sort(events, new Comparator<Event>() {
+                @Override
+                public int compare(Event o1, Event o2) {
+                    return o1.compareTo(o2);
+                }
+            });
+
+            int max = 1;
+            ArrayList<Event> group = new ArrayList<>();
+            ArrayList<Event> active = new ArrayList<>();
+            for(Event e : events) {
+                if(!group.isEmpty()) {
+                    boolean hasIdx = false;
+                    ListIterator<Event> iter = active.listIterator();
+                    while(iter.hasNext()) {
+                        Event test = iter.next();
+                        if(e.startDate.getTimeInMillis() >= test.endDate.getTimeInMillis()) {
+                            iter.remove();
+                            if(!hasIdx) {
+                                e.columnIdx = test.columnIdx;
+                                hasIdx = true;
+                            }
+                        }
+                    }
+
+                    if(active.isEmpty()) {
+                        for(Event ev : group) {
+                            ev.numColumns = max;
+                        }
+
+                        group.clear();
+                        max = 1;
+                        e.columnIdx = 0;
+                    }
+                    else if(!hasIdx) {
+                        e.columnIdx = max;
+                        max++;
+                    }
+                }
+
+                group.add(e);
+                active.add(e);
+            }
+
+            for(Event ev : group) {
+                ev.numColumns = max;
+            }
+        }
+
+        invalidate();
+    }
+
+    private Calendar date;
+    public void setCal(Calendar cal) {
+        date = cal;
     }
 }
