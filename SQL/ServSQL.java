@@ -2,7 +2,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,7 +13,6 @@ public class ServSQL {
 	 * Credenciais acesso database estao no construtor desta classe */
 	private Connection c;
 	private Statement stmt;
-	private ResultSet rs;
 	
 	public ServSQL() { // Construtor abre conexão ao servidor DB
 		try {
@@ -74,8 +72,7 @@ public class ServSQL {
 		}
 	}
 	
-	public String addEvento(String json, int event_id) { // Recebe array eventos servidor e um evento e adiciona ao array servidor e a database
-		String returne;
+	public String addEvento(String json, int event_id) { // Recebe string json do cliente e adiciona evento
 		JSONObject obj;
 		try {
 			obj = new JSONObject(json);
@@ -98,81 +95,157 @@ public class ServSQL {
 		        
 			} catch ( Exception e ) {
 				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-	    		System.exit(0);
-	    		returne = "mal";
+				return "Erro: " + e.getClass().getName()+": "+ e.getMessage();
 			}
 		} catch (JSONException e1) {
 			e1.printStackTrace();
-			returne = "mal";
+			return "Erro: Mensagem recebida nao tem formato json";
 		}
-		event_id++;
-		returne = "bem";
-		return returne;
+		return "" + event_id;
 	}
 	
-	public void delEvento(ArrayList<Evento> eventos, Evento del) { // Recebe array eventos servidor e um evento e retira ao array servidor e a database
+	public String delEvento(String json) { // Recebe string json do cliente e apaga evento da database
+		JSONObject obj;
 		try {
-			String sql = "DELETE from EVENTOS where USER_ID = " + del.user_id + " AND EVENT_ID = " + del.event_id + ";";
-			stmt.executeUpdate(sql);
-			getEventos(eventos);
-	        
-		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-    		System.exit(0);
+			obj = new JSONObject(json);
+			try {
+				String sql = "DELETE from EVENTOS where USER_ID = " + obj.getInt("user_id") + " AND EVENT_ID = " + obj.getInt("event_id") + ";";
+				stmt.executeUpdate(sql);
+		        
+			} catch ( Exception e ) {
+				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+				return "Erro: " + e.getClass().getName()+": "+ e.getMessage();
+			}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			return "Erro: Mensagem recebida nao tem formato json";
 		}
+		return "Evento deleted";
 	}
 	
-	public void getEventos(ArrayList<Evento> eventos) { // Mete no array eventos do servidor os eventos na database
+	public String getEventos(String json) { // Recebe string json do cliente e retorna json com os eventos associados ao user
+		JSONObject obj;
+		JSONObject aux;
+		JSONObject eventos;
+		int count = 0;
 		try {
-			ResultSet rs = stmt.executeQuery( "SELECT * FROM public.eventos;" );
-			eventos.clear();
+			obj = new JSONObject(json);
+			eventos = new JSONObject();
+			try {
+				ResultSet rs = stmt.executeQuery( "SELECT * FROM public.eventos WHERE user_id = " + obj.getInt("user_id") );
+		        while ( rs.next() ) {
+		        	aux = new JSONObject();
+	    			aux.put("user_id", rs.getInt("user_id"));
+	    			aux.put("event_id",rs.getInt("event_id"));
+	    			aux.put("nome", rs.getString("nome"));
+	    			aux.put("data_inicio", rs.getString("data_inicio"));
+	    			aux.put("data_fim", rs.getString("data_fim"));
+	    			aux.put("tipo", rs.getString("tipo"));
+	    			aux.put("dias", rs.getString("dias"));
+	    			aux.put("notas", rs.getString("notas"));
+	    			aux.put("local", rs.getString("local"));
+	    			aux.put("last_edit", rs.getString("last_edit"));
+	    			aux.put("alarme", rs.getInt("alarme"));
+	    			aux.put("cor", rs.getString("cor"));
+	    			eventos.put("" + count, aux);
+	    			count ++;
+		        }
+		        eventos.put("n", count);
+		        
+			} catch ( Exception e ) {
+				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+				return "Erro: " + e.getClass().getName()+": "+ e.getMessage();
+			}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			return "Erro: Mensagem recebida nao tem formato json";
+		}
+		return eventos.toString();
+	}
+	
+	public String addUser(String json) { // Adiciona um novo user na tabela users
+		JSONObject obj;
+		try {
+			obj = new JSONObject(json);
+			try {
+				String sql = "INSERT INTO USERS (USER_ID) VALUES ("
+				+ obj.getInt("user_id")
+				+ ");";
+				stmt.executeUpdate(sql);
+		        
+			} catch ( Exception e ) {
+				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+				return "Erro: " + e.getClass().getName()+": "+ e.getMessage();
+			}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			return "Erro: Mensagem recebida nao tem formato json";
+		}
+		return "User adicionado!";
+	}
+	
+	public String delUser(String json) { // Apaga um user e os seus eventos das tabelas
+		JSONObject obj;
+		try {
+			obj = new JSONObject(json);
+			try {
+				String sql = "DELETE FROM eventos WHERE user_id = " + obj.getInt("user_id");
+				stmt.executeUpdate(sql);
+				sql = "DELETE FROM users WHERE user_id = " + obj.getInt("user_id");
+				stmt.executeUpdate(sql);
+				
+			} catch ( Exception e ) {
+				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+				return "Erro: " + e.getClass().getName()+": "+ e.getMessage();
+			}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			return "Erro: Mensagem recebida nao tem formato json";
+		}
+		return "User apagado!";
+	}
+	
+	public int getEvent_id() {
+		int event_id = 0;
+		try {
+			ResultSet rs = stmt.executeQuery( "SELECT MAX(event_id) FROM public.eventos AS max");
 	        while ( rs.next() ) {
-	        	Evento aux = new Evento();
-    			aux.user_id = rs.getInt("user_id");
-    			aux.event_id = rs.getInt("event_id");
-    			aux.nome = rs.getString("nome");
-    			aux.data_inicio = rs.getString("data_inicio");
-    			aux.data_fim = rs.getString("data_fim");
-    			aux.tipo = rs.getString("tipo");
-    			aux.dias = rs.getString("dias");
-    			aux.notas = rs.getString("notas");
-    			aux.local = rs.getString("local");
-    			aux.last_edit = rs.getString("last_edit");
-    			aux.alarme = rs.getInt("alarme");
-    			aux.cor = rs.getString("cor");
-	            eventos.add(aux);
+	        	event_id = rs.getInt("max") + 1;
 	        }
 	        
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-    		System.exit(0);
 		}
+		return event_id;
 	}
-	
-	public void addUser(int userid) { // Adiciona um novo user na tabela users
+
+	public String updateEvento(String json) {
+		JSONObject obj;
 		try {
-			String sql = "INSERT INTO USERS (USER_ID) VALUES ("
-			+ userid
-			+ ");";
-			stmt.executeUpdate(sql);
-	        
-		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-    		System.exit(0);
+			obj = new JSONObject(json);
+			try {
+				String sql = "UPDATE EVENTOS SET nome = "
+				+ "'" + obj.getString("nome") + "', data_inicio = "
+				+ "'" + obj.getString("data_inicio") + "', data_fim = "
+				+ "'" + obj.getString("data_fim") + "', tipo = "
+				+ "'" + obj.getString("tipo") + "', dias = "
+				+ "'" + obj.getString("dias") + "', notas = "
+				+ "'" + obj.getString("notas") + "', local = "
+				+ "'" + obj.getString("local") + "', last_edit = "
+				+ "'" + obj.getString("last_edit") + "', alarme = "
+				+ obj.getInt("alarme") + ", cor = "
+				+ "'" + obj.getString("cor") + "'"
+				+ " WHERE event_id = " + obj.getInt("event_id") + ";";
+				stmt.executeUpdate(sql);
+		        
+			} catch ( Exception e ) {
+				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+				return "Erro: " + e.getClass().getName()+": "+ e.getMessage();
+			}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			return "Erro: Mensagem recebida nao tem formato json";
 		}
-	}
-	
-	public void delUser(int userid, ArrayList<Evento> eventos) { // Apaga um user e os seus eventos das tabelas e do array eventos
-		try {
-			String sql = "DELETE FROM eventos WHERE user_id = " + userid;
-			stmt.executeUpdate(sql);
-			sql = "DELETE FROM users WHERE user_id = " + userid;
-			stmt.executeUpdate(sql);
-			getEventos(eventos);
-	        
-		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-    		System.exit(0);
-		}
+		return "Updated!";
 	}
 }
