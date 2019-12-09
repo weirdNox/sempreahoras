@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -25,7 +26,15 @@ public class DayFragment extends Fragment implements UpdatableUi {
     MainActivity a;
     View v;
 
-    public DayFragment() {}
+    int numDays;
+
+    public DayFragment(int numDays) {
+        this.numDays = numDays;
+    }
+
+    public DayFragment() {
+        this(1);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,14 +70,29 @@ public class DayFragment extends Fragment implements UpdatableUi {
 
     public void updateUi() {
         if(v != null) {
+            if(numDays == 7) {
+                int diff = a.selectedDate.getFirstDayOfWeek() - a.selectedDate.get(Calendar.DAY_OF_WEEK);
+                a.selectedDate.set(Calendar.DAY_OF_MONTH, a.selectedDate.get(Calendar.DAY_OF_MONTH)+diff);
+            }
+
             Button dateButton = v.findViewById(R.id.date_button);
-            dateButton.setText(a.dateFormat.format(a.selectedDate.getTime()));
+
+            if(numDays == 1) {
+                dateButton.setText(a.dateFormat.format(a.selectedDate.getTime()));
+            }
+            else {
+                SimpleDateFormat format = new SimpleDateFormat("MMMM, yyyy");
+                dateButton.setText(format.format(a.selectedDate.getTime()));
+            }
 
             long firstDayStartMillis = a.selectedDate.getTimeInMillis();
-            List<Event> events = a.eventRepo.getEventsBetweenMillis(firstDayStartMillis, firstDayStartMillis + 1000 * 60 * 60 * 24);
+            List<Event> events[] = new List[numDays];
+            for(int idx = 0; idx < numDays; ++idx) {
+                events[idx] = a.eventRepo.getEventsBetweenMillis(firstDayStartMillis + idx*(24*60*60*1000), firstDayStartMillis + (idx+1)*(24*60*60*1000));
+            }
 
             EventsView view = v.findViewById(R.id.events);
-            view.setEvents(new List[]{events}, firstDayStartMillis);
+            view.setEvents(events, firstDayStartMillis);
             view.setCal(a.selectedDate);
         }
     }

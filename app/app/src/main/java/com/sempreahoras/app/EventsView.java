@@ -37,12 +37,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 
+import static java.lang.Math.floor;
+
 public class EventsView extends View implements GestureDetector.OnGestureListener {
     private float density = getResources().getDisplayMetrics().density;
     float hourTextSize = 15*density;
-
-    private float width;
-    private float height;
     private GestureDetectorCompat gestureDetector;
 
     private boolean scrolling = false;
@@ -58,12 +57,17 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
     private int hourHeight = Math.round(75 * density);
     private int selectedHour = -1;
 
+    private float width;
+    private float columWidth;
+    private float height;
+
     private Paint paint = new Paint();
     private TextPaint textPaint = new TextPaint();
 
     private Handler handler;
 
     private long firstDayStartMillis;
+    private int numberOfDays = 1;
     private List<Event>[] events;
 
     public FloatingActionButton floatingButton;
@@ -108,9 +112,14 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         }
     }
 
+    void updateColumnWidth() {
+        columWidth = (width - hourTextWidth)/numberOfDays;
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         width = w;
+        updateColumnWidth();
         height = h;
 
         maxScrollY = Math.round(24 * hourHeight - height);
@@ -126,7 +135,9 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         super.onDraw(canvas);
 
         paint.setColor(Color.GRAY);
-        canvas.drawLine(hourTextWidth, 0, hourTextWidth, height, paint);
+        for(int idx = 0; idx < numberOfDays; ++idx) {
+            canvas.drawLine(hourTextWidth+columWidth*idx, 0, hourTextWidth+columWidth*idx, height, paint);
+        }
         canvas.translate(0, -scrollY);
 
         textPaint.setTextSize(hourTextSize);
@@ -137,10 +148,11 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         }
 
         textPaint.setTextSize(10*density);
-        if(events != null) {
-            // TODO multiday
-            for(Event e : events[0]) {
-                RectF rect = getEventRect(e, firstDayStartMillis);
+
+        int dayIdx = 0;
+        for(List<Event> eventsForDay : events) {
+            for(Event e : eventsForDay) {
+                RectF rect = getEventRect(e, dayIdx, firstDayStartMillis + dayIdx*24*60*60*1000);
 
                 paint.setStyle(Paint.Style.STROKE);
                 paint.setColor(Color.BLACK);
@@ -169,6 +181,8 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
                     canvas.restore();
                 }
             }
+
+            dayIdx++;
         }
 
         if(MainActivity.getDayNumber(date) == MainActivity.getDayNumber(Calendar.getInstance())) {
@@ -187,7 +201,7 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         }
     }
 
-    private RectF getEventRect(Event e, long dayStartMillis) {
+    private RectF getEventRect(Event e, int dayIdx, long dayStartMillis) {
         float top, bottom;
 
         if(e.startMillis < dayStartMillis) {
@@ -204,9 +218,8 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
             bottom = (float) (e.endMillis/1000 % (24*60*60)) / (60*60) * hourHeight - 1;
         }
 
-        float availWidth = width-hourTextWidth;
-        float w = availWidth/e.numColumns;
-        float left = hourTextWidth + w*e.columnIdx + 4;
+        float w = columWidth/e.numColumns;
+        float left = hourTextWidth + dayIdx*columWidth + w*e.columnIdx + 4;
         float right = left + w - 8;
 
         return new RectF(left, top, right, bottom);
@@ -228,14 +241,17 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
     public boolean onSingleTapUp(MotionEvent event) {
         boolean handled = false;
 
-        // TODO Multiday
-        for(Event e : events[0]) {
-            RectF rect = getEventRect(e, firstDayStartMillis);
-            if(rect.contains(event.getX(), scrollY + event.getY())) {
-                // TODO
-                //((DayActivity)getContext()).editEvent(e);
-                handled = true;
-                break;
+        float x = event.getX();
+        int dayIdx = (int)floor((x-hourTextWidth)/columWidth);
+        if(dayIdx >= 0 && dayIdx < numberOfDays) {
+            for(Event e : events[dayIdx]) {
+                RectF rect = getEventRect(e, dayIdx, firstDayStartMillis + dayIdx*24*60*60*1000);
+                if(rect.contains(x, scrollY + event.getY())) {
+                    // TODO
+                    //((DayActivity)getContext()).editEvent(e);
+                    handled = true;
+                    break;
+                }
             }
         }
 
@@ -365,6 +381,8 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
 
             invalidate();
         }
+        numberOfDays = eventArray.length;
+        updateColumnWidth();
     }
 
     private Calendar date;

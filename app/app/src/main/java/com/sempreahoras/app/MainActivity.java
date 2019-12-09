@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             } break;
 
             case WEEK: {
+                getSupportFragmentManager().beginTransaction().replace(R.id.container, new DayFragment(7)).commit();
             } break;
 
             case MONTH: {
