@@ -35,9 +35,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final long millisPerDay = 86400000L;
 
     DateFormat dateFormat = DateFormat.getDateInstance();
-    Calendar currentDate = Calendar.getInstance();
+    Calendar selectedDate = Calendar.getInstance();
 
-    SparseArray<ArrayList<Event>> events = new SparseArray<>();
+    EventRepository eventRepo;
 
     String userId = "testId";
 
@@ -45,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        eventRepo = new EventRepository(getApplication());
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.navigation);
         navigationView.setNavigationItemSelectedListener(this);
@@ -62,29 +64,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(account != null) {
             userId = account.getId();
         }
-
-
-        // TODO(nox): Remove dummy data
-        ArrayList<Event> eventsForToday = new ArrayList<>();
-        eventsForToday.add(new Event("Olá", 2019, 12, 5, 0, 0, 0, 2019, 12, 5, 1, 30, 0));
-        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 7, 0, 0, 2019, 12, 5, 8, 30, 0));
-        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 7, 30, 0, 2019, 12, 5, 8, 45, 0));
-        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 30, 0, 2019, 12, 5, 9, 0, 0));
-        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0, 2019, 12, 5, 9, 0, 0));
-        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0, 2019, 12, 5, 9, 0, 0));
-        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0, 2019, 12, 5, 9, 0, 0));
-        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0, 2019, 12, 5, 9, 0, 0));
-        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0, 2019, 12, 5, 9, 0, 0));
-        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0, 2019, 12, 5, 9, 0, 0));
-        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0, 2019, 12, 5, 9, 0, 0));
-        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0, 2019, 12, 5, 9, 0, 0));
-        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0, 2019, 12, 5, 9, 0, 0));
-        eventsForToday.add(new Event("Comer pão", 2019, 12, 5, 8, 40, 0, 2019, 12, 5, 9, 0, 0));
-        eventsForToday.get(eventsForToday.size()-1).color = Color.rgb(99, 235, 164);
-        eventsForToday.add(new Event("Adeus", 2019, 12, 5, 21, 0, 0, 2019, 12, 5, 21, 30, 0));
-        events.append(getDayNumber(currentDate), eventsForToday);
-
-
 
         getSupportFragmentManager().beginTransaction().replace(R.id.container, new DayFragment()).commit();
     }
@@ -133,20 +112,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void changeDate(View v) {
-        new DatePickerDialog(this, currentDateChangeListener,
-                             currentDate.get(Calendar.YEAR),
-                             currentDate.get(Calendar.MONTH),
-                             currentDate.get(Calendar.DAY_OF_MONTH)).show();
+        new DatePickerDialog(this, selectedDateChangeListener,
+                             selectedDate.get(Calendar.YEAR),
+                             selectedDate.get(Calendar.MONTH),
+                             selectedDate.get(Calendar.DAY_OF_MONTH)).show();
     }
 
-    DatePickerDialog.OnDateSetListener currentDateChangeListener = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                currentDate.set(Calendar.YEAR, year);
-                currentDate.set(Calendar.MONTH, monthOfYear);
-                currentDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+    DatePickerDialog.OnDateSetListener selectedDateChangeListener = (view, year, monthOfYear, dayOfMonth) -> {
+        selectedDate.set(Calendar.YEAR, year);
+        selectedDate.set(Calendar.MONTH, monthOfYear);
+        selectedDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
 
-                ((UpdatableUi) getSupportFragmentManager().findFragmentById(R.id.container)).updateUi();
-            }
-        };
+        ((UpdatableUi) getSupportFragmentManager().findFragmentById(R.id.container)).updateUi();
+    };
 }

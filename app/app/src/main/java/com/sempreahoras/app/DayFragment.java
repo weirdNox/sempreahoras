@@ -10,6 +10,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ import android.widget.DatePicker;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class DayFragment extends Fragment implements UpdatableUi {
     MainActivity a;
@@ -59,11 +61,16 @@ public class DayFragment extends Fragment implements UpdatableUi {
 
     public void updateUi() {
         Button dateButton = v.findViewById(R.id.date_button);
-        dateButton.setText(a.dateFormat.format(a.currentDate.getTime()));
+        dateButton.setText(a.dateFormat.format(a.selectedDate.getTime()));
 
-        ArrayList<Event> events = a.events.get(a.getDayNumber(a.currentDate));
-        EventsView view = (EventsView)v.findViewById(R.id.events);
+        Calendar date = (Calendar)a.selectedDate.clone();
+        date.set(Calendar.HOUR_OF_DAY, 0);
+        date.set(Calendar.MINUTE, 0);
+        date.set(Calendar.SECOND, 0);
+
+        List<Event> events = a.eventRepo.getEventsBetweenMillis(date.getTimeInMillis(), date.getTimeInMillis()+1000*60*60*24);
+        EventsView view = v.findViewById(R.id.events);
         view.setEvents(events);
-        view.setCal(a.currentDate);
+        view.setCal(a.selectedDate);
     }
 }

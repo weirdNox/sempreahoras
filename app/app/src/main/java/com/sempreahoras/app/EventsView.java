@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.ListIterator;
 
 public class EventsView extends View implements GestureDetector.OnGestureListener {
@@ -61,7 +62,7 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
 
     private Handler handler;
 
-    private ArrayList<Event> events;
+    private List<Event> events;
 
     public FloatingActionButton floatingButton;
 
@@ -144,6 +145,7 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
                 canvas.drawRect(rect, paint);
 
                 paint.setStyle(Paint.Style.FILL);
+                paint.setStrokeWidth(1);
                 paint.setColor(e.color);
                 canvas.drawRect(rect, paint);
 
@@ -183,11 +185,8 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
     }
 
     private RectF getEventRect(Event e) {
-        int start = e.startDate.get(Calendar.HOUR_OF_DAY)*60*60 + e.startDate.get(Calendar.MINUTE)*60 + e.startDate.get(Calendar.SECOND);
-        float top = (float) start / (24*60*60) * 24*hourHeight - 1;
-
-        int end = e.endDate.get(Calendar.HOUR_OF_DAY)*60*60 + e.endDate.get(Calendar.MINUTE)*60 + e.endDate.get(Calendar.SECOND);
-        float bottom = (float) end / (24*60*60) * 24*hourHeight - 1;
+        float top    = (float) (e.startMillis/1000 % (24*60*60)) / (60*60) * hourHeight - 1;
+        float bottom = (float) (e.endMillis  /1000 % (24*60*60)) / (60*60) * hourHeight - 1;
 
         float availWidth = width-hourTextWidth;
         float w = (float) availWidth/e.numColumns;
@@ -299,16 +298,11 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         }
     }
 
-    public void setEvents(ArrayList<Event> events) {
+    public void setEvents(List<Event> events) {
         this.events = events;
 
-        if(events != null) {
-            Collections.sort(events, new Comparator<Event>() {
-                    @Override
-                    public int compare(Event o1, Event o2) {
-                        return o1.compareTo(o2);
-                    }
-                });
+        if(events != null && !events.isEmpty()) {
+            Collections.sort(events, (o1, o2) -> o1.compareTo(o2));
 
             int max = 1;
             ArrayList<Event> group = new ArrayList<>();
@@ -319,9 +313,9 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
                     ListIterator<Event> iter = active.listIterator();
                     while(iter.hasNext()) {
                         Event test = iter.next();
-                        if(e.startDate.getTimeInMillis() >= test.endDate.getTimeInMillis()) {
+                        if(e.startMillis >= test.endMillis) {
                             iter.remove();
-                            if(!hasIdx) {
+                            if(!hasIdx || test.columnIdx < e.columnIdx) {
                                 e.columnIdx = test.columnIdx;
                                 hasIdx = true;
                             }
