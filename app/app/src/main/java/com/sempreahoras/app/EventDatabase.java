@@ -39,13 +39,15 @@ public abstract class EventDatabase extends RoomDatabase {
             databaseWriteExecutor.execute(() -> {
                 EventDao dao = INSTANCE.eventDao();
 
-                dao.insert(new Event("Comer pão matinal",    2019, 11, 5,  9, 10, 0, 2019, 11, 5,  9, 30, 0));
-                dao.insert(new Event("Comer pão vespertino", 2019, 11, 5, 15, 10, 0, 2019, 11, 5, 15, 30, 0));
-                dao.insert(new Event("Comer pão noturno",    2019, 11, 5, 20, 10, 0, 2019, 11, 5, 20, 30, 0));
-                dao.insert(new Event("New day party",        2019, 11, 5, 23, 55, 0, 2019, 11, 6,  0, 30, 0));
+                dao.insert(new Event("Comer pão matinal",    2019, 11,  5,  9, 10, 2019, 11,  5,  9, 30));
+                dao.insert(new Event("Comer pão vespertino", 2019, 11,  5, 15, 10, 2019, 11,  5, 15, 30));
+                dao.insert(new Event("Comer pão noturno",    2019, 11,  5, 20, 10, 2019, 11,  5, 20, 30));
+                dao.insert(new Event("New day party",        2019, 11,  5, 23, 55, 2019, 11,  6,  0, 30));
 
-                dao.insert(new Event("Looong event!",        2019, 11, 9, 10, 0, 0, 2019, 11, 11,  10, 0, 0));
-                dao.insert(new Event("Small event",        2019, 11, 10, 10, 0, 0, 2019, 11, 10,  11, 0, 0));
+                Event e = new Event("Looong event!",        2019, 11,  9, 10,  0, 2019, 11, 11, 10,  0);
+                e.description  = "This event tests the ability of drawing events that span over several days!";
+                dao.insert(e);
+                dao.insert(new Event("Small event",          2019, 11, 10, 10,  0, 2019, 11, 10, 11,  0));
             });
         }
     };

@@ -1,152 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".EventDetails">
+    android:orientation="vertical">
 
-    <EditText
-        android:id="@+id/enddateev"
-        android:layout_width="113dp"
-        android:layout_height="47dp"
-        android:ems="10"
-        android:inputType="date"
-        android:text="200"
-        android:textAlignment="center"
-        app:layout_constraintBaseline_toBaselineOf="@+id/textView4"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.385"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:text="2019/05/27" />
-
-    <EditText
-        android:id="@+id/locationev"
-        android:layout_width="113dp"
-        android:layout_height="47dp"
-        android:ems="10"
-        android:inputType="text"
-        android:text="Holanda"
-        android:textAlignment="center"
-        app:layout_constraintBaseline_toBaselineOf="@+id/textView5"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.385"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/eventname"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Event Name"
-        android:textColor="#3F51B5"
-        android:textSize="30sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.089999974" />
+  <androidx.appcompat.widget.Toolbar
+      android:id="@+id/toolbar"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal|center_vertical"
+      android:background="?attr/colorPrimary"
+      android:minHeight="?attr/actionBarSize"
+      android:theme="?attr/actionBarTheme">
 
     <Button
-        android:id="@+id/editbutton"
-        android:layout_width="294dp"
-        android:layout_height="42dp"
-        android:text="Edit Event"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.767" />
+        android:id="@+id/date_button"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:onClick="changeDate"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+  </androidx.appcompat.widget.Toolbar>
 
-    <Button
-        android:id="@+id/deletebutton"
-        android:layout_width="294dp"
-        android:layout_height="42dp"
-        android:text="Delete Event"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editbutton"
-        app:layout_constraintVertical_bias="0.203" />
 
-    <EditText
-        android:id="@+id/begindateev"
-        android:layout_width="113dp"
-        android:layout_height="47dp"
-        android:ems="10"
-        android:inputType="date"
-        android:text="200"
-        android:textAlignment="center"
-        app:layout_constraintBaseline_toBaselineOf="@+id/textView3"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.385"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:text="2019/05/27" />
+  <LinearLayout
+      android:id="@+id/top_banner"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:padding="15dp">
 
     <TextView
-        android:id="@+id/textView3"
+        android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="From:"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.125"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.194" />
+        android:text="Title"
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Until:"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.139"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.285" />
+        android:text="Time"
+        android:textSize="16sp" />
 
     <TextView
-        android:id="@+id/textView5"
+        android:id="@+id/location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Location:"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.048"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.387" />
+        android:text="Location"
+        android:textSize="16sp" />
+  </LinearLayout>
 
-    <EditText
-        android:id="@+id/begintimeev"
-        android:layout_width="79dp"
-        android:layout_height="47dp"
-        android:ems="10"
-        android:inputType="time"
-        android:text="23:45"
-        android:textAlignment="center"
-        app:layout_constraintBaseline_toBaselineOf="@+id/begindateev"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.765"
-        app:layout_constraintStart_toStartOf="parent" />
+  <View
+      android:layout_width="wrap_content"
+      android:layout_height="2dp"
+      android:background="?android:attr/listDivider" />
 
-    <EditText
-        android:id="@+id/endtimeev"
-        android:layout_width="79dp"
-        android:layout_height="47dp"
-        android:ems="10"
-        android:inputType="time"
-        android:text="23:45"
-        android:textAlignment="center"
-        app:layout_constraintBaseline_toBaselineOf="@+id/enddateev"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.765"
-        app:layout_constraintStart_toStartOf="parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+  <TextView
+      android:id="@+id/desc"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:padding="10dp"
+      android:text="Description"
+      android:textSize="14sp" />
+</LinearLayout>

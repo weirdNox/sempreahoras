@@ -16,6 +16,11 @@ public class EventRepository {
         return eventDao.getEventsBetweenMillis(startMillis,endMillis);
     }
 
+
+    Event getEventById(long id) {
+        return eventDao.getEventById(id);
+    }
+
     void insert(Event e) {
         EventDatabase.databaseWriteExecutor.execute(() -> {
             eventDao.insert(e);

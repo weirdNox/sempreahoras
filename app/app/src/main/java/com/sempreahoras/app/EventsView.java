@@ -247,8 +247,7 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
             for(Event e : events[dayIdx]) {
                 RectF rect = getEventRect(e, dayIdx, firstDayStartMillis + dayIdx*24*60*60*1000);
                 if(rect.contains(x, scrollY + event.getY())) {
-                    // TODO
-                    //((DayActivity)getContext()).editEvent(e);
+                    ((MainActivity)getContext()).viewEvent(e);
                     handled = true;
                     break;
                 }

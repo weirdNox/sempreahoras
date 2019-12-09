@@ -6,6 +6,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.SparseArray;
@@ -24,6 +25,7 @@ import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     public static final String GOOGLE_ACC = "google_account";
+    static String userId = "testId";
 
     private final int DAY = 0;
     private final int WEEK = 1;
@@ -38,8 +40,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     Calendar selectedDate = Calendar.getInstance();
 
     EventRepository eventRepo;
-
-    String userId = "testId";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,5 +136,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         selectedDate.set(Calendar.SECOND, 0);
 
         ((UpdatableUi) getSupportFragmentManager().findFragmentById(R.id.container)).updateUi();
+    }
+
+    void viewEvent(Event e) {
+        Intent intent = new Intent(this, EventDetailsActivity.class);
+        intent.putExtra(EventDetailsActivity.EVENT_ID, e.id);
+        startActivity(intent);
     }
 }
