@@ -12,6 +12,6 @@ public interface EventDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insert(Event e);
 
-    @Query("SELECT * from event_table WHERE startMillis <= :endMillis AND endMillis >= :startMillis")
+    @Query("SELECT * from event_table WHERE startMillis <= :endMillis AND endMillis >= :startMillis ORDER BY startMillis ASC, endMillis ASC")
     List<Event> getEventsBetweenMillis(long startMillis, long endMillis);
 }

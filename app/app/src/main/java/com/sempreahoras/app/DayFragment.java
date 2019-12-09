@@ -60,17 +60,16 @@ public class DayFragment extends Fragment implements UpdatableUi {
     }
 
     public void updateUi() {
-        Button dateButton = v.findViewById(R.id.date_button);
-        dateButton.setText(a.dateFormat.format(a.selectedDate.getTime()));
+        if(v != null) {
+            Button dateButton = v.findViewById(R.id.date_button);
+            dateButton.setText(a.dateFormat.format(a.selectedDate.getTime()));
 
-        Calendar date = (Calendar)a.selectedDate.clone();
-        date.set(Calendar.HOUR_OF_DAY, 0);
-        date.set(Calendar.MINUTE, 0);
-        date.set(Calendar.SECOND, 0);
+            long firstDayStartMillis = a.selectedDate.getTimeInMillis();
+            List<Event> events = a.eventRepo.getEventsBetweenMillis(firstDayStartMillis, firstDayStartMillis + 1000 * 60 * 60 * 24);
 
-        List<Event> events = a.eventRepo.getEventsBetweenMillis(date.getTimeInMillis(), date.getTimeInMillis()+1000*60*60*24);
-        EventsView view = v.findViewById(R.id.events);
-        view.setEvents(events);
-        view.setCal(a.selectedDate);
+            EventsView view = v.findViewById(R.id.events);
+            view.setEvents(new List[]{events}, firstDayStartMillis);
+            view.setCal(a.selectedDate);
+        }
     }
 }

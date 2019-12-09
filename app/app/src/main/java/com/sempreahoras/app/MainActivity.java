@@ -66,6 +66,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         getSupportFragmentManager().beginTransaction().replace(R.id.container, new DayFragment()).commit();
+        getSupportFragmentManager().executePendingTransactions();
+
+        updateUi();
     }
 
     @Override
@@ -96,9 +99,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             } break;
         }
 
-        ((UpdatableUi) getSupportFragmentManager().findFragmentById(R.id.container)).updateUi();
-
         ((DrawerLayout)findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
+        updateUi();
+
         return true;
     }
 
@@ -123,6 +126,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         selectedDate.set(Calendar.MONTH, monthOfYear);
         selectedDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
 
-        ((UpdatableUi) getSupportFragmentManager().findFragmentById(R.id.container)).updateUi();
+        updateUi();
     };
+
+    void updateUi() {
+        selectedDate.set(Calendar.HOUR_OF_DAY, 0);
+        selectedDate.set(Calendar.MINUTE, 0);
+        selectedDate.set(Calendar.SECOND, 0);
+
+        ((UpdatableUi) getSupportFragmentManager().findFragmentById(R.id.container)).updateUi();
+    }
 }

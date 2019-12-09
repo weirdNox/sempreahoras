@@ -15,6 +15,7 @@ import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.EventLog;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -62,7 +63,8 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
 
     private Handler handler;
 
-    private List<Event> events;
+    private long firstDayStartMillis;
+    private List<Event>[] events;
 
     public FloatingActionButton floatingButton;
 
@@ -136,8 +138,9 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
 
         textPaint.setTextSize(10*density);
         if(events != null) {
-            for(Event e : events) {
-                RectF rect = getEventRect(e);
+            // TODO multiday
+            for(Event e : events[0]) {
+                RectF rect = getEventRect(e, firstDayStartMillis);
 
                 paint.setStyle(Paint.Style.STROKE);
                 paint.setColor(Color.BLACK);
@@ -184,12 +187,25 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         }
     }
 
-    private RectF getEventRect(Event e) {
-        float top    = (float) (e.startMillis/1000 % (24*60*60)) / (60*60) * hourHeight - 1;
-        float bottom = (float) (e.endMillis  /1000 % (24*60*60)) / (60*60) * hourHeight - 1;
+    private RectF getEventRect(Event e, long dayStartMillis) {
+        float top, bottom;
+
+        if(e.startMillis < dayStartMillis) {
+            top = 0;
+        }
+        else {
+            top = (float) (e.startMillis/1000 % (24*60*60)) / (60*60) * hourHeight - 1;
+        }
+
+        if(e.endMillis > (dayStartMillis + 24*60*60*1000)) {
+            bottom = 24*hourHeight;
+        }
+        else {
+            bottom = (float) (e.endMillis/1000 % (24*60*60)) / (60*60) * hourHeight - 1;
+        }
 
         float availWidth = width-hourTextWidth;
-        float w = (float) availWidth/e.numColumns;
+        float w = availWidth/e.numColumns;
         float left = hourTextWidth + w*e.columnIdx + 4;
         float right = left + w - 8;
 
@@ -212,8 +228,9 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
     public boolean onSingleTapUp(MotionEvent event) {
         boolean handled = false;
 
-        for(Event e : events) {
-            RectF rect = getEventRect(e);
+        // TODO Multiday
+        for(Event e : events[0]) {
+            RectF rect = getEventRect(e, firstDayStartMillis);
             if(rect.contains(event.getX(), scrollY + event.getY())) {
                 // TODO
                 //((DayActivity)getContext()).editEvent(e);
@@ -298,55 +315,56 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         }
     }
 
-    public void setEvents(List<Event> events) {
-        this.events = events;
+    public void setEvents(List<Event> eventArray[], long firstDayStartMillis) {
+        this.events = eventArray;
+        this.firstDayStartMillis = firstDayStartMillis;
 
-        if(events != null && !events.isEmpty()) {
-            Collections.sort(events, (o1, o2) -> o1.compareTo(o2));
-
-            int max = 1;
-            ArrayList<Event> group = new ArrayList<>();
-            ArrayList<Event> active = new ArrayList<>();
-            for(Event e : events) {
-                if(!group.isEmpty()) {
-                    boolean hasIdx = false;
-                    ListIterator<Event> iter = active.listIterator();
-                    while(iter.hasNext()) {
-                        Event test = iter.next();
-                        if(e.startMillis >= test.endMillis) {
-                            iter.remove();
-                            if(!hasIdx || test.columnIdx < e.columnIdx) {
-                                e.columnIdx = test.columnIdx;
-                                hasIdx = true;
+        for(List<Event> eventsForDay : eventArray) {
+            if(eventsForDay != null && !eventsForDay.isEmpty()) {
+                int max = 1;
+                ArrayList<Event> group = new ArrayList<>();
+                ArrayList<Event> active = new ArrayList<>();
+                for(Event e : eventsForDay) {
+                    if(!group.isEmpty()) {
+                        boolean hasIdx = false;
+                        ListIterator<Event> iter = active.listIterator();
+                        while(iter.hasNext()) {
+                            Event test = iter.next();
+                            if(e.startMillis >= test.endMillis) {
+                                iter.remove();
+                                if(!hasIdx || test.columnIdx < e.columnIdx) {
+                                    e.columnIdx = test.columnIdx;
+                                    hasIdx = true;
+                                }
                             }
                         }
-                    }
 
-                    if(active.isEmpty()) {
-                        for(Event ev : group) {
-                            ev.numColumns = max;
+                        if(active.isEmpty()) {
+                            for(Event ev : group) {
+                                ev.numColumns = max;
+                            }
+
+                            group.clear();
+                            max = 1;
+                            e.columnIdx = 0;
                         }
+                        else if(!hasIdx) {
+                            e.columnIdx = max;
+                            max++;
+                        }
+                    }
 
-                        group.clear();
-                        max = 1;
-                        e.columnIdx = 0;
-                    }
-                    else if(!hasIdx) {
-                        e.columnIdx = max;
-                        max++;
-                    }
+                    group.add(e);
+                    active.add(e);
                 }
 
-                group.add(e);
-                active.add(e);
+                for(Event ev : group) {
+                    ev.numColumns = max;
+                }
             }
 
-            for(Event ev : group) {
-                ev.numColumns = max;
-            }
+            invalidate();
         }
-
-        invalidate();
     }
 
     private Calendar date;
