@@ -49,7 +49,7 @@ public class EventDetailsActivity extends AppCompatActivity {
             title.setText(e.title);
 
             DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM);
-            SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm");
+            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
 
             TextView time = findViewById(R.id.time);
             Date startDate = new Date(e.startMillis);

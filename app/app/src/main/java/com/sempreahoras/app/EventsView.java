@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.text.Layout;
@@ -24,18 +25,21 @@ import android.widget.OverScroller;
 import android.widget.Scroller;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GestureDetectorCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.w3c.dom.Text;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 
 import static java.lang.Math.floor;
 
@@ -56,6 +60,8 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
     private int hourTextHeight;
     private int hourHeight = Math.round(75 * density);
     private int selectedHour = -1;
+
+    private float headerHeight = 50*density;
 
     private float width;
     private float columWidth;
@@ -122,24 +128,31 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         updateColumnWidth();
         height = h;
 
-        maxScrollY = Math.round(24 * hourHeight - height);
+        updateMaxScroll();
+        invalidate();
+    }
+
+    void updateMaxScroll() {
+        maxScrollY = Math.round(24 * hourHeight - height + (numberOfDays > 1 ? headerHeight : 0));
         if(maxScrollY < 0) {
             maxScrollY = 0;
         }
+    }
 
-        invalidate();
+    float getEffectiveScroll() {
+        return -scrollY + (numberOfDays > 1 ? headerHeight : 0);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        paint.setColor(Color.GRAY);
-        for(int idx = 0; idx < numberOfDays; ++idx) {
-            canvas.drawLine(hourTextWidth+columWidth*idx, 0, hourTextWidth+columWidth*idx, height, paint);
-        }
-        canvas.translate(0, -scrollY);
+        canvas.drawColor(ContextCompat.getColor(getContext(), android.R.color.background_light));
 
+        canvas.translate(0, getEffectiveScroll());
+
+        paint.setStrokeWidth(0.5f);
+        paint.setColor(Color.GRAY);
         textPaint.setTextSize(hourTextSize);
         for(int hour = 1; hour < 24; ++hour) {
             int y = hourHeight*hour;
@@ -149,6 +162,7 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
 
         textPaint.setTextSize(10*density);
 
+        long nowMillis = Calendar.getInstance().getTimeInMillis();
         int dayIdx = 0;
         for(List<Event> eventsForDay : events) {
             for(Event e : eventsForDay) {
@@ -160,7 +174,6 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
                 canvas.drawRect(rect, paint);
 
                 paint.setStyle(Paint.Style.FILL);
-                paint.setStrokeWidth(1);
                 paint.setColor(e.color);
                 canvas.drawRect(rect, paint);
 
@@ -182,22 +195,72 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
                 }
             }
 
-            dayIdx++;
-        }
+            if(firstDayStartMillis + dayIdx*24*60*60*1000 <= nowMillis && firstDayStartMillis + (dayIdx+1)*24*60*60*1000 > nowMillis) {
+                paint.setColor(Color.BLUE);
+                paint.setStrokeWidth(5);
 
-        if(MainActivity.getDayNumber(date) == MainActivity.getDayNumber(Calendar.getInstance())) {
-            paint.setColor(Color.BLUE);
-            paint.setStrokeWidth(5);
-            Calendar now = Calendar.getInstance();
-            int nowTime = now.get(Calendar.HOUR_OF_DAY)*60*60 + now.get(Calendar.MINUTE)*60 + now.get(Calendar.SECOND);
-            float y = (float)nowTime /  (24*60*60) * 24*hourHeight - 1;
-            canvas.drawLine(0, y, width, y, paint);
-            paint.setStrokeWidth(1);
+                float left = hourTextWidth + dayIdx*columWidth;
+                float y = (float) (nowMillis/1000 % (24*60*60)) / (60*60) * hourHeight - 1;
+                canvas.drawLine(left, y, left+columWidth, y, paint);
+            }
+
+            dayIdx++;
         }
 
         if(selectedHour >= 0) {
             paint.setColor(Color.argb(100, 224, 137, 29));
             canvas.drawRect(hourTextWidth, selectedHour*hourHeight, width, (selectedHour+1)*hourHeight, paint);
+        }
+
+        canvas.translate(0, -getEffectiveScroll());
+
+        if(numberOfDays > 1) {
+            Calendar day = Calendar.getInstance();
+
+            paint.setColor(ContextCompat.getColor(getContext(), android.R.color.background_light));
+            canvas.drawRect(0, 0, width, headerHeight, paint);
+
+            paint.setColor(Color.GRAY);
+            paint.setStrokeWidth(5);
+            canvas.drawLine(0, headerHeight, width, headerHeight, paint);
+
+            for(dayIdx = 0; dayIdx < numberOfDays; ++dayIdx) {
+                canvas.save();
+
+                day.setTimeInMillis(firstDayStartMillis + dayIdx*24*60*60*1000 + 12*60*60*1000);
+
+                RectF rect = new RectF(hourTextWidth + dayIdx*columWidth, 0, hourTextWidth + (dayIdx + 1)*columWidth, headerHeight);
+                canvas.clipRect(rect);
+                canvas.translate(rect.left, 0);
+
+                if(nowMillis >= firstDayStartMillis + dayIdx*24*60*60*1000 && nowMillis < firstDayStartMillis + (dayIdx + 1)*24*60*60*1000) {
+                    paint.setColor(Color.rgb(117, 191, 209));
+                    canvas.drawRect(0, 0, columWidth, headerHeight, paint);
+                }
+
+                Rect textBounds = new Rect();
+                textPaint.setColor(Color.BLACK);
+
+                String text = ""+day.get(Calendar.DAY_OF_MONTH);
+                textPaint.setTextSize(30*density);
+                textPaint.setTypeface(Typeface.DEFAULT_BOLD);
+                textPaint.getTextBounds(text, 0, text.length(), textBounds);
+                canvas.drawText(text, (columWidth-textBounds.width())/2.0f, headerHeight-10, textPaint);
+                textPaint.setTypeface(Typeface.DEFAULT);
+
+                text = new SimpleDateFormat("EE").format(day.getTime()).toUpperCase();
+                textPaint.setTextSize(12*density);
+                textPaint.getTextBounds(text, 0, text.length(), textBounds);
+                canvas.drawText(text, 10, textBounds.height()+10, textPaint);
+
+                canvas.restore();
+            }
+        }
+
+        paint.setStrokeWidth(1);
+        paint.setColor(Color.GRAY);
+        for(int idx = 0; idx < numberOfDays; ++idx) {
+            canvas.drawLine(hourTextWidth+columWidth*idx, 0, hourTextWidth+columWidth*idx, height, paint);
         }
     }
 
@@ -246,7 +309,7 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         if(dayIdx >= 0 && dayIdx < numberOfDays) {
             for(Event e : events[dayIdx]) {
                 RectF rect = getEventRect(e, dayIdx, firstDayStartMillis + dayIdx*24*60*60*1000);
-                if(rect.contains(x, scrollY + event.getY())) {
+                if(rect.contains(x, -getEffectiveScroll() + event.getY())) {
                     ((MainActivity)getContext()).viewEvent(e);
                     handled = true;
                     break;
@@ -255,7 +318,7 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         }
 
         if(!handled && !scrolling) {
-            selectedHour = (int)((scrollY + event.getY()) / hourHeight);
+            selectedHour = (int)((-getEffectiveScroll() + event.getY()) / hourHeight);
             if(selectedHour >= 24) {
                 selectedHour = 23;
              }
@@ -377,11 +440,15 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
                     ev.numColumns = max;
                 }
             }
-
-            invalidate();
         }
+
         numberOfDays = eventArray.length;
+        updateMaxScroll();
         updateColumnWidth();
+
+        scrollY = 0;
+
+        invalidate();
     }
 
     private Calendar date;
