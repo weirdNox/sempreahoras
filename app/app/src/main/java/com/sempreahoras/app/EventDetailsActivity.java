@@ -3,7 +3,10 @@ package com.sempreahoras.app;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -15,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class EventDetailsActivity extends AppCompatActivity {
+    final static int OPTION_EDIT = 1;
     final static String EVENT_ID = "event_id";
     EventRepository eventRepo;
 
@@ -39,6 +43,26 @@ public class EventDetailsActivity extends AppCompatActivity {
         this.eventId = eventId;
 
         updateUi();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(Menu.NONE, OPTION_EDIT, Menu.NONE, "Edit event");
+        return true;
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case OPTION_EDIT: {
+                Intent intent = new Intent(this, EventEditorActivity.class);
+                intent.putExtra(EventDetailsActivity.EVENT_ID, eventId);
+                startActivity(intent);
+            } break;
+
+            default: return false;
+        }
+
+        return true;
     }
 
     void updateUi() {

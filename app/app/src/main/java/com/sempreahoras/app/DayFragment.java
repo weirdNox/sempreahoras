@@ -56,7 +56,7 @@ public class DayFragment extends Fragment implements UpdatableUi {
         a.getSupportActionBar().setDisplayShowTitleEnabled(false);
         a.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        DrawerLayout drawer = (DrawerLayout) a.findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = a.findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(a, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();

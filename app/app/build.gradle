@@ -46,4 +46,6 @@ dependencies {
 
     // Testing
     androidTestImplementation "androidx.arch.core:core-testing:$rootProject.coreTestingVersion"
+
+    implementation 'com.pes.materialcolorpicker:library:1.2.5'
 }

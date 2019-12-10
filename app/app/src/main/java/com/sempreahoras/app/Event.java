@@ -35,7 +35,7 @@ public class Event {
 
     public Event() {
         Calendar date = Calendar.getInstance();
-        startMillis = date.getTimeInMillis();
+        startMillis = date.getTimeInMillis() + 1000*60*60;
         endMillis = startMillis + 1000*60*60;
     }
 
