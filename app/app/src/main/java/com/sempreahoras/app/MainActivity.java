@@ -1,10 +1,14 @@
 package com.sempreahoras.app;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.app.Activity;
+import android.app.Application;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Color;
@@ -17,6 +21,7 @@ import android.view.View;
 import android.widget.DatePicker;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
 import java.text.DateFormat;
@@ -36,8 +41,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private static final long millisPerDay = 86400000L;
 
-    DateFormat dateFormat = DateFormat.getDateInstance();
+    DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.FULL);
     Calendar selectedDate = Calendar.getInstance();
+    FloatingActionButton b;
 
     EventRepository eventRepo;
 
@@ -47,6 +53,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_main);
 
         eventRepo = new EventRepository(getApplication());
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.navigation);
         navigationView.setNavigationItemSelectedListener(this);
@@ -65,8 +81,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             userId = account.getId();
         }
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.container, new DayFragment()).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.container, new DayFragment(7)).commit();
         getSupportFragmentManager().executePendingTransactions();
+
+        b = findViewById(R.id.floatingActionButton);
+        b.setOnClickListener(v -> createEvent());
 
         updateUi();
     }
@@ -86,7 +105,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             } break;
 
             case TASKS: {
-                // getSupportFragmentManager().beginTransaction().replace(R.id.container, new TasksFragment()).commit();
             } break;
 
             case TIMER: {
@@ -138,9 +156,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ((UpdatableUi) getSupportFragmentManager().findFragmentById(R.id.container)).updateUi();
     }
 
+    void createEvent() {
+        Intent intent = new Intent(this, EventEditorActivity.class);
+        startActivity(intent);
+    }
+
     void viewEvent(Event e) {
         Intent intent = new Intent(this, EventDetailsActivity.class);
         intent.putExtra(EventDetailsActivity.EVENT_ID, e.id);
         startActivity(intent);
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        updateUi();
     }
 }

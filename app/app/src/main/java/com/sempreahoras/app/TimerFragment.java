@@ -48,15 +48,8 @@ public class TimerFragment extends Fragment implements UpdatableUi {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         v = inflater.inflate(R.layout.fragment_timer, container, false);
 
-        Toolbar toolbar = v.findViewById(R.id.toolbar);
-        a.setSupportActionBar(toolbar);
-        a.getSupportActionBar().setDisplayShowTitleEnabled(false);
-        a.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        DrawerLayout drawer = (DrawerLayout) a.findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(a, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
+        Button dateButton = a.findViewById(R.id.date_button);
+        dateButton.setVisibility(View.GONE);
 
         counttempo   = v.findViewById(R.id.timeview);
         selecttempo  = v.findViewById(R.id.seltime);
@@ -65,30 +58,22 @@ public class TimerFragment extends Fragment implements UpdatableUi {
         startbutton = v.findViewById(R.id.sbuttontime);
         resetbutton = v.findViewById(R.id.rbuttontime);
 
-        startbutton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(fin == false){
-                        left_time_mili = readTime();
-                        updtCounter();
-                        fin = true;
-                    }
+        startbutton.setOnClickListener(v -> {
+            if(fin == false){
+                left_time_mili = readTime();
+                updtCounter();
+                fin = true;
+            }
 
-                    if(run){
-                        pauset();
-                    }
-                    else{
-                        startt();
-                    }
-                }
-            });
+            if(run){
+                pauset();
+            }
+            else{
+                startt();
+            }
+        });
 
-        resetbutton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    resett();
-                }
-            });
+        resetbutton.setOnClickListener(v -> resett());
 
         updtCounter();
 

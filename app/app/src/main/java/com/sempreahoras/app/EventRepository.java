@@ -22,8 +22,7 @@ public class EventRepository {
     }
 
     void insert(Event e) {
-        EventDatabase.databaseWriteExecutor.execute(() -> {
-            eventDao.insert(e);
-        });
+        e.calculateEnd();
+        EventDatabase.databaseWriteExecutor.execute(() -> eventDao.insert(e));
     }
 }

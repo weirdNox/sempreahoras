@@ -19,6 +19,7 @@ import java.util.Date;
 
 public class EventDetailsActivity extends AppCompatActivity {
     final static int OPTION_EDIT = 1;
+    final static int EDIT_EVENT_CODE = 1;
     final static String EVENT_ID = "event_id";
     EventRepository eventRepo;
 
@@ -56,7 +57,7 @@ public class EventDetailsActivity extends AppCompatActivity {
             case OPTION_EDIT: {
                 Intent intent = new Intent(this, EventEditorActivity.class);
                 intent.putExtra(EventDetailsActivity.EVENT_ID, eventId);
-                startActivity(intent);
+                startActivityForResult(intent, EDIT_EVENT_CODE);
             } break;
 
             default: return false;
@@ -77,15 +78,42 @@ public class EventDetailsActivity extends AppCompatActivity {
 
             TextView time = findViewById(R.id.time);
             Date startDate = new Date(e.startMillis);
-            Date endDate   = new Date(e.endMillis);
+            Date endDate   = new Date(e.startMillis + e.durationMillis);
             time.setText(dateFormat.format(startDate) + " " + timeFormat.format(startDate) + " - " +
                          dateFormat.format(endDate)   + " " + timeFormat.format(endDate));
 
+            TextView repeat = findViewById(R.id.repeat);
+            switch(e.repeatType) {
+                case Event.repeatWeekly: {
+                    repeat.setText("Repeats weekly");
+                } break;
+
+                case Event.repeatMonthly: {
+                    repeat.setText("Repeats monthly");
+                } break;
+
+                case Event.repeatYearly: {
+                    repeat.setText("Repeats yearly");
+                } break;
+            }
+
+            if(e.repeatType != Event.repeatNone) {
+                repeat.setVisibility(View.VISIBLE);
+
+                if(e.repeatCount != 0) {
+                    repeat.setText(repeat.getText().toString() + " for " + e.repeatCount + " times");
+                }
+            }
+            else {
+                repeat.setVisibility(View.GONE);
+            }
+
             TextView location = findViewById(R.id.location);
-            if(e.location == null) {
+            if(e.location.isEmpty()) {
                 location.setVisibility(View.GONE);
             }
             else {
+                location.setVisibility(View.VISIBLE);
                 location.setText(e.location);
             }
 
@@ -96,7 +124,14 @@ public class EventDetailsActivity extends AppCompatActivity {
             topBanner.setBackgroundColor(e.color);
         }
         else {
-            // TODO: Go back?
+            finish();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == EDIT_EVENT_CODE) {
+            updateUi();
         }
     }
 }

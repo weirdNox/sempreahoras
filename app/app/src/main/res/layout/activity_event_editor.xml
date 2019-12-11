@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
 
   <androidx.appcompat.widget.Toolbar
       android:id="@+id/toolbar"
@@ -16,14 +16,13 @@
       android:theme="?attr/actionBarTheme">
 
     <Button
-        android:id="@+id/date_button"
-        style="@style/Widget.AppCompat.Button.Borderless"
+        android:id="@+id/save_button"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:onClick="changeDate"
+        android:layout_gravity="end"
         android:textSize="18sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:text="Save" />
   </androidx.appcompat.widget.Toolbar>
 
 
@@ -32,29 +31,101 @@
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:orientation="vertical"
-      android:padding="15dp">
+      android:padding="15dp" >
 
-    <TextView
+    <EditText
         android:id="@+id/title"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Title"
+        android:hint="Title"
+        android:inputType="text|textCapSentences"
         android:textSize="24sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:background="@android:color/transparent"
+        android:layout_marginEnd="60dp"
+        android:maxLines="5"
+        android:imeOptions="actionDone" />
 
-    <TextView
-        android:id="@+id/time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Time"
-        android:textSize="16sp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp" >
 
-    <TextView
+      <Button
+          android:id="@+id/startDate"
+          android:layout_width="0dp"
+          android:layout_weight="1"
+          android:layout_height="wrap_content"
+          android:textSize="11sp"
+          android:text="30 JUL 2019" />
+
+      <Button
+          android:id="@+id/startTime"
+          android:layout_width="0dp"
+          android:layout_weight="0.7"
+          android:layout_height="wrap_content"
+          android:textSize="11sp"
+          android:text="11:13" />
+
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textSize="10sp"
+          android:text="-" />
+
+      <Button
+          android:id="@+id/endDate"
+          android:layout_width="0dp"
+          android:layout_weight="1"
+          android:layout_height="wrap_content"
+          android:textSize="11sp"
+          android:text="30 JUL 2019" />
+
+      <Button
+          android:id="@+id/endTime"
+          android:layout_width="0dp"
+          android:layout_weight="0.7"
+          android:layout_height="wrap_content"
+          android:textSize="11sp"
+          android:text="11:13" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="10dp" >
+
+      <Spinner
+          android:id="@+id/repeat"
+          android:layout_width="150dp"
+          android:layout_height="wrap_content" />
+
+      <EditText
+          android:id="@+id/repeatCount"
+          android:layout_width="0dp"
+          android:layout_weight="1"
+          android:layout_height="wrap_content"
+          android:hint="Repeat count"
+          android:maxLines="1"
+          android:inputType="number"
+          android:background="@android:color/transparent" />
+
+    </LinearLayout>
+
+    <EditText
         android:id="@+id/location"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Location"
-        android:textSize="16sp" />
+        android:hint="Location"
+        android:maxLines="1"
+        android:inputType="text|textCapWords"
+        android:textSize="16sp"
+        android:background="@android:color/transparent" />
+
   </LinearLayout>
 
   <View
@@ -62,11 +133,14 @@
       android:layout_height="2dp"
       android:background="?android:attr/listDivider" />
 
-  <TextView
+  <EditText
       android:id="@+id/desc"
       android:layout_width="match_parent"
-      android:layout_height="wrap_content"
+      android:layout_height="match_parent"
       android:padding="10dp"
-      android:text="Description"
+      android:hint="Description"
+      android:gravity="top"
+      android:inputType="text|textMultiLine|textCapSentences"
+      android:background="@android:color/transparent"
       android:textSize="14sp" />
 </LinearLayout>

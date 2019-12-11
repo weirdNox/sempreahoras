@@ -78,6 +78,8 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
 
     public FloatingActionButton floatingButton;
 
+    DayFragment frag;
+
     public EventsView(Context context) {
         super(context);
         init();
@@ -165,8 +167,9 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         long nowMillis = Calendar.getInstance().getTimeInMillis();
         int dayIdx = 0;
         for(List<Event> eventsForDay : events) {
+            long dayStartMillis = firstDayStartMillis + dayIdx*24*60*60*1000;
             for(Event e : eventsForDay) {
-                RectF rect = getEventRect(e, dayIdx, firstDayStartMillis + dayIdx*24*60*60*1000);
+                RectF rect = getEventRect(e, dayIdx, dayStartMillis);
 
                 paint.setStyle(Paint.Style.STROKE);
                 paint.setColor(Color.BLACK);
@@ -271,14 +274,14 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
             top = 0;
         }
         else {
-            top = (float) (e.startMillis/1000 % (24*60*60)) / (60*60) * hourHeight - 1;
+            top = (float) (e.startMillis - dayStartMillis) / (1000*60*60) * hourHeight - 1;
         }
 
         if(e.endMillis > (dayStartMillis + 24*60*60*1000)) {
             bottom = 24*hourHeight;
         }
         else {
-            bottom = (float) (e.endMillis/1000 % (24*60*60)) / (60*60) * hourHeight - 1;
+            bottom = (float) (e.endMillis - dayStartMillis) / (1000*60*60) * hourHeight - 1;
         }
 
         float w = columWidth/e.numColumns;
@@ -307,12 +310,18 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         float x = event.getX();
         int dayIdx = (int)floor((x-hourTextWidth)/columWidth);
         if(dayIdx >= 0 && dayIdx < numberOfDays) {
-            for(Event e : events[dayIdx]) {
-                RectF rect = getEventRect(e, dayIdx, firstDayStartMillis + dayIdx*24*60*60*1000);
-                if(rect.contains(x, -getEffectiveScroll() + event.getY())) {
-                    ((MainActivity)getContext()).viewEvent(e);
-                    handled = true;
-                    break;
+            if(numberOfDays > 1 && event.getY() < headerHeight) {
+                handled = true;
+                frag.gotoDay(dayIdx);
+            }
+            else {
+                for(Event e : events[dayIdx]) {
+                    RectF rect = getEventRect(e, dayIdx, firstDayStartMillis + dayIdx*24*60*60*1000);
+                    if(rect.contains(x, -getEffectiveScroll() + event.getY())) {
+                        ((MainActivity)getContext()).viewEvent(e);
+                        handled = true;
+                        break;
+                    }
                 }
             }
         }
@@ -326,7 +335,7 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
             invalidate();
         }
 
-        return true;
+        return handled;
     }
 
     @Override
@@ -360,9 +369,14 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        hasFling = true;
-        scroller.fling(0, scrollY, 0, -Math.round(velocityY), 0, 0,0, maxScrollY, 0, 0);
-        handler.post(animScroller);
+        if(Math.abs(velocityX) > Math.abs(2*velocityY)) {
+            frag.changeTo(-velocityX);
+        }
+        else {
+            hasFling = true;
+            scroller.fling(0, scrollY, 0, -Math.round(velocityY), 0, 0,0, maxScrollY, 0, 0);
+            handler.post(animScroller);
+        }
 
         return true;
     }
@@ -399,6 +413,8 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
 
         for(List<Event> eventsForDay : eventArray) {
             if(eventsForDay != null && !eventsForDay.isEmpty()) {
+                Collections.sort(eventsForDay, Event::compareTo);
+
                 int max = 1;
                 ArrayList<Event> group = new ArrayList<>();
                 ArrayList<Event> active = new ArrayList<>();
@@ -445,8 +461,6 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         numberOfDays = eventArray.length;
         updateMaxScroll();
         updateColumnWidth();
-
-        scrollY = 0;
 
         invalidate();
     }
