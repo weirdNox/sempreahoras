@@ -19,6 +19,8 @@ import java.util.Date;
 
 public class EventDetailsActivity extends AppCompatActivity {
     final static int OPTION_EDIT = 1;
+    final static int OPTION_DELETE = 2;
+
     final static int EDIT_EVENT_CODE = 1;
     final static String EVENT_ID = "event_id";
     EventRepository eventRepo;
@@ -49,6 +51,7 @@ public class EventDetailsActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.add(Menu.NONE, OPTION_EDIT, Menu.NONE, "Edit event");
+        menu.add(Menu.NONE, OPTION_DELETE, Menu.NONE, "Delete event");
         return true;
     }
 
@@ -58,6 +61,11 @@ public class EventDetailsActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, EventEditorActivity.class);
                 intent.putExtra(EventDetailsActivity.EVENT_ID, eventId);
                 startActivityForResult(intent, EDIT_EVENT_CODE);
+            } break;
+
+            case OPTION_DELETE: {
+                eventRepo.deleteEvent(eventId);
+                finish();
             } break;
 
             default: return false;

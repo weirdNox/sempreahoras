@@ -23,6 +23,10 @@ public class EventRepository {
 
     void insert(Event e) {
         e.calculateEnd();
-        EventDatabase.databaseWriteExecutor.execute(() -> eventDao.insert(e));
+        eventDao.insert(e);
+    }
+
+    void deleteEvent(long id) {
+        eventDao.deleteEvent(id);
     }
 }

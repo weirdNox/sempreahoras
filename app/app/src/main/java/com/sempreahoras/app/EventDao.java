@@ -17,4 +17,7 @@ public interface EventDao {
 
     @Query("SELECT * from event_table WHERE id == :id LIMIT 1")
     Event getEventById(long id);
+
+    @Query("DELETE from event_table WHERE id == :id")
+    void deleteEvent(long id);
 }
