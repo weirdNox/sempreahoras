@@ -52,6 +52,15 @@ public class ConnThread extends Thread {
             else if (inline.contains("deluser")) {
             	outline = sql.delUser(inline);
             }
+            else if (inline.contains("addtarefa")) {
+            	outline = sql.addTarefa(inline);
+            }
+            else if (inline.contains("deltarefa")) {
+            	outline = sql.delTarefa(inline);
+            }
+            else if (inline.contains("updatetarefa")) {
+            	outline = sql.updateTarefa(inline);
+            }
             else outline = "Nenhum tipo funcao detetado";
         	System.out.print("mandei\n" + outline + "\n");
         	out.writeBytes(outline + "\n");
