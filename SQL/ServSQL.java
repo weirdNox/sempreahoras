@@ -57,7 +57,7 @@ public class ServSQL {
 				" LAST_EDIT TEXT NOT NULL," +
 				" ALARME INTEGER," +
 				" COR TEXT," + 
-				"UNIQUE (USER_ID, EVENT_ID)" +
+				" UNIQUE (USER_ID, EVENT_ID)" +
 				")");
 	        pstmt.executeUpdate();
 			
@@ -75,6 +75,26 @@ public class ServSQL {
 			pstmt = c.prepareStatement(
 					"CREATE TABLE USERS " +
 					"(USER_ID INTEGER PRIMARY KEY NOT NULL" +
+					")");
+	        pstmt.executeUpdate();
+			
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+        	System.exit(0);
+		}
+	}
+	
+	public void tableTarefas() { // Apaga e cria uma nova tabela Users
+		try {
+			pstmt = c.prepareStatement(
+					"DROP TABLE TAREFAS");
+			pstmt.executeUpdate();
+			pstmt = c.prepareStatement(
+					"CREATE TABLE TAREFAS " +
+					"(TAREFA_ID SERIAL PRIMARY KEY NOT NULL," +
+					" USER_ID INTEGER NOT NULL," +
+					" NOME TEXT," +
+					" CORPO TEXT" +
 					")");
 	        pstmt.executeUpdate();
 			
@@ -264,5 +284,83 @@ public class ServSQL {
 			return "Erro: Mensagem recebida nao tem formato json";
 		}
 		return "Updated!";
+	}
+	
+	public String addTarefa(String json) { // Recebe string json do cliente e adiciona tarefa
+		JSONObject obj;
+		int tarefa_id = 0;
+		try {
+			obj = new JSONObject(json);
+			try {
+				pstmt = c.prepareStatement("INSERT INTO TAREFAS (USER_ID,NOME,CORPO) VALUES (?, ?, ?)");
+				pstmt.setInt(1, obj.getInt("user_id"));
+				pstmt.setString(2, obj.getString("nome"));
+				pstmt.setString(3, obj.getString("corpo"));
+				pstmt.executeUpdate();
+		        
+			} catch ( Exception e ) {
+				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+				return "Erro: " + e.getClass().getName()+": "+ e.getMessage();
+			}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			return "Erro: Mensagem recebida nao tem formato json";
+		}
+		try {
+			pstmt = c.prepareStatement( "SELECT tarefa_id FROM public.tarefas WHERE user_id = ? AND nome = ? AND corpo = ?" );
+			pstmt.setInt(1, obj.getInt("user_id"));
+			pstmt.setString(2, obj.getString("nome"));
+			pstmt.setString(3, obj.getString("corpo"));
+			ResultSet rs = pstmt.executeQuery();
+	        while ( rs.next() ) {
+	        	tarefa_id = rs.getInt("tarefa_id");
+	        }
+	        
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+		}
+		return "" + tarefa_id;
+	}
+	
+	public String delTarefa(String json) { // Apaga a tarefa enviada
+		JSONObject obj;
+		try {
+			obj = new JSONObject(json);
+			try {
+				pstmt = c.prepareStatement("DELETE FROM tarefas WHERE tarefa_id = ?");
+				pstmt.setInt(1, obj.getInt("tarefa_id"));
+				pstmt.executeUpdate();
+				
+			} catch ( Exception e ) {
+				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+				return "Erro: " + e.getClass().getName()+": "+ e.getMessage();
+			}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			return "Erro: Mensagem recebida nao tem formato json";
+		}
+		return "Tarefa apagada!";
+	}
+	
+	public String updateTarefa(String json) { // Update a tarefa
+		JSONObject obj;
+		try {
+			obj = new JSONObject(json);
+			try {
+				pstmt = c.prepareStatement("UPDATE tarefas SET nome = ?, corpo = ? WHERE tarefa_id = ?");
+				pstmt.setString(1, obj.getString("nome"));
+				pstmt.setString(2, obj.getString("corpo"));
+				pstmt.setInt(3, obj.getInt("tarefa_id"));
+				pstmt.executeUpdate();
+				
+			} catch ( Exception e ) {
+				System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+				return "Erro: " + e.getClass().getName()+": "+ e.getMessage();
+			}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			return "Erro: Mensagem recebida nao tem formato json";
+		}
+		return "Tarefa updated!";
 	}
 }
