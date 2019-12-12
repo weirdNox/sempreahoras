@@ -1,6 +1,5 @@
 package com.sempreahoras.app;
 
-import androidx.annotation.ColorInt;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -8,22 +7,18 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.pes.androidmaterialcolorpickerdialog.ColorPicker;
-import com.pes.androidmaterialcolorpickerdialog.ColorPickerCallback;
 
-import java.sql.Time;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -79,6 +74,7 @@ public class EventEditorActivity extends AppCompatActivity {
         EditText repeatCount = findViewById(R.id.repeatCount);
         EditText location = findViewById(R.id.location);
         EditText desc = findViewById(R.id.desc);
+        CheckBox allDay = findViewById(R.id.allDay);
 
         save.setOnClickListener(v -> {
             e.title = title.getText().toString();
@@ -205,6 +201,12 @@ public class EventEditorActivity extends AppCompatActivity {
             repeatCount.setText(""+e.repeatCount);
         }
 
+        allDay.setChecked(e.isAllDay);
+        allDay.setOnClickListener(v -> {
+            e.isAllDay = !e.isAllDay;
+            updateUi();
+        });
+
         location.setText(e.location);
         desc.setText(e.description);
 
@@ -218,5 +220,14 @@ public class EventEditorActivity extends AppCompatActivity {
         startTime.setText(timeFormat.format(start));
         endDate.setText(dateFormat.format(end));
         endTime.setText(timeFormat.format(end));
+
+        if(e.isAllDay) {
+            startTime.setVisibility(View.GONE);
+            endTime.setVisibility(View.GONE);
+        }
+        else {
+            startTime.setVisibility(View.VISIBLE);
+            endTime.setVisibility(View.VISIBLE);
+        }
     }
 }

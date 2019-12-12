@@ -42,6 +42,7 @@ import java.util.ListIterator;
 import java.util.Locale;
 
 import static java.lang.Math.floor;
+import static java.lang.Math.max;
 
 public class EventsView extends View implements GestureDetector.OnGestureListener {
     private float density = getResources().getDisplayMetrics().density;
@@ -49,8 +50,8 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
     private GestureDetectorCompat gestureDetector;
 
     private boolean scrolling = false;
-    private int scrollY = 0;
-    private int maxScrollY;
+    private float scrollY = 0;
+    private float maxScrollY;
     private OverScroller scroller = new OverScroller(getContext());
     private AnimScroller animScroller = new AnimScroller();
     private boolean hasFling = false;
@@ -75,6 +76,10 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
     private long firstDayStartMillis;
     private int numberOfDays = 1;
     private List<Event>[] events;
+    private List<Event>[] allDayEvents;
+    private int allDayMax;
+    private final float allDayHeight = 20*density;
+    private final float allDayExtra = 5;
 
     public FloatingActionButton floatingButton;
 
@@ -135,14 +140,15 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
     }
 
     void updateMaxScroll() {
-        maxScrollY = Math.round(24 * hourHeight - height + (numberOfDays > 1 ? headerHeight : 0));
+        Log.d(null, allDayMax + " ");
+        maxScrollY = Math.round(24 * hourHeight - height + (numberOfDays > 1 ? headerHeight : 0) + (allDayMax > 0 ? allDayMax * allDayHeight + allDayExtra : 0));
         if(maxScrollY < 0) {
             maxScrollY = 0;
         }
     }
 
     float getEffectiveScroll() {
-        return -scrollY + (numberOfDays > 1 ? headerHeight : 0);
+        return -scrollY + (numberOfDays > 1 ? headerHeight : 0) + (allDayMax > 0 ? allDayMax * allDayHeight + allDayExtra : 0);
     }
 
     @Override
@@ -260,6 +266,50 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
             }
         }
 
+        if(allDayMax > 0) {
+            canvas.save();
+            canvas.translate(hourTextWidth, numberOfDays > 1 ? headerHeight : 0);
+
+            paint.setColor(ContextCompat.getColor(getContext(), android.R.color.background_light));
+            canvas.drawRect(-hourTextWidth, 0, width, allDayMax*allDayHeight, paint);
+
+            paint.setColor(Color.GRAY);
+            paint.setStrokeWidth(allDayExtra);
+            float y = allDayMax*allDayHeight + allDayExtra/2;
+            canvas.drawLine(-hourTextWidth, y, width, y, paint);
+
+            for(dayIdx = 0; dayIdx < numberOfDays; ++dayIdx) {
+                List<Event> allDayForDay = allDayEvents[dayIdx];
+                for(int allDayIdx = 0; allDayIdx < allDayForDay.size(); ++allDayIdx) {
+                    Event e = allDayForDay.get(allDayIdx);
+                    RectF rect = getAllDayRect(dayIdx, allDayIdx);
+
+                    paint.setStyle(Paint.Style.FILL);
+                    paint.setColor(e.color);
+                    canvas.drawRect(rect, paint);
+
+                    if(rect.width() >= 22.5*density) {
+                        canvas.save();
+
+                        rect.top    += 5;
+                        rect.bottom -= 5;
+                        rect.left   += 5;
+                        rect.right  -= 5;
+                        canvas.clipRect(rect);
+
+                        canvas.translate(rect.left, rect.top);
+
+                        StaticLayout textLayout = new StaticLayout(e.title, textPaint, Math.round(rect.width()), Layout.Alignment.ALIGN_NORMAL, 1, 0, false);
+                        textLayout.draw(canvas);
+
+                        canvas.restore();
+                    }
+                }
+            }
+
+            canvas.restore();
+        }
+
         paint.setStrokeWidth(1);
         paint.setColor(Color.GRAY);
         for(int idx = 0; idx < numberOfDays; ++idx) {
@@ -291,6 +341,15 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         return new RectF(left, top, right, bottom);
     }
 
+    private RectF getAllDayRect(int dayIdx, int allDayIdx) {
+        float left  = columWidth* dayIdx;
+        float right = columWidth*(dayIdx+1);
+        float top    = allDayHeight* allDayIdx;
+        float bottom = allDayHeight*(allDayIdx+1);
+
+        return new RectF(left + 2, top + 2, right - 2, bottom - 2);
+    }
+
     @Override
     public boolean onDown(MotionEvent e) {
         hasFling = false;
@@ -308,16 +367,30 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         boolean handled = false;
 
         float x = event.getX();
+        float y = event.getY();
+
         int dayIdx = (int)floor((x-hourTextWidth)/columWidth);
         if(dayIdx >= 0 && dayIdx < numberOfDays) {
-            if(numberOfDays > 1 && event.getY() < headerHeight) {
+            if(numberOfDays > 1 && y < headerHeight) {
                 handled = true;
                 frag.gotoDay(dayIdx);
+            }
+            else if(y < allDayMax*allDayHeight + (numberOfDays > 1 ? headerHeight : 0)) {
+                y -= (numberOfDays > 1 ? headerHeight : 0);
+
+                for(int allDayIdx = 0; allDayIdx < allDayEvents[dayIdx].size(); ++allDayIdx) {
+                    RectF rect = getAllDayRect(dayIdx, allDayIdx);
+                    if(rect.contains(x - hourTextWidth, y)) {
+                        ((MainActivity)getContext()).viewEvent(allDayEvents[dayIdx].get(allDayIdx));
+                        handled = true;
+                        break;
+                    }
+                }
             }
             else {
                 for(Event e : events[dayIdx]) {
                     RectF rect = getEventRect(e, dayIdx, firstDayStartMillis + dayIdx*24*60*60*1000);
-                    if(rect.contains(x, -getEffectiveScroll() + event.getY())) {
+                    if(rect.contains(x, -getEffectiveScroll() + y)) {
                         ((MainActivity)getContext()).viewEvent(e);
                         handled = true;
                         break;
@@ -374,7 +447,7 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         }
         else {
             hasFling = true;
-            scroller.fling(0, scrollY, 0, -Math.round(velocityY), 0, 0,0, maxScrollY, 0, 0);
+            scroller.fling(0, Math.round(scrollY), 0, -Math.round(velocityY), 0, 0,0, Math.round(maxScrollY), 0, 0);
             handler.post(animScroller);
         }
 
@@ -407,11 +480,17 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         }
     }
 
-    public void setEvents(List<Event> eventArray[], long firstDayStartMillis) {
+    public void setEvents(List<Event>[] eventArray, List<Event>[] allDayEvents, long firstDayStartMillis) {
+        assert(eventArray.length == allDayEvents.length);
+
         this.events = eventArray;
+        this.allDayEvents = allDayEvents;
         this.firstDayStartMillis = firstDayStartMillis;
 
-        for(List<Event> eventsForDay : eventArray) {
+        allDayMax = 0;
+
+        for(int idx = 0; idx < eventArray.length; ++idx) {
+            List<Event> eventsForDay = eventArray[idx];
             if(eventsForDay != null && !eventsForDay.isEmpty()) {
                 Collections.sort(eventsForDay, Event::compareTo);
 
@@ -456,6 +535,8 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
                     ev.numColumns = max;
                 }
             }
+
+            allDayMax = max(allDayEvents[idx].size(), allDayMax);
         }
 
         numberOfDays = eventArray.length;
@@ -463,10 +544,5 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         updateColumnWidth();
 
         invalidate();
-    }
-
-    private Calendar date;
-    public void setCal(Calendar cal) {
-        date = cal;
     }
 }

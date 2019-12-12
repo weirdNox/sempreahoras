@@ -22,7 +22,7 @@ public class EventRepository {
     }
 
     void insert(Event e) {
-        e.calculateEnd();
+        e.ensureConsistency();
         eventDao.insert(e);
     }
 

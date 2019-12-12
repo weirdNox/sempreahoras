@@ -87,7 +87,10 @@ public class DayFragment extends Fragment implements UpdatableUi {
 
             long firstDayStartMillis = a.selectedDate.getTimeInMillis();
             List<Event>[] events = new List[numDays];
+            List<Event>[] allDayEvents = new List[numDays];
             for(int idx = 0; idx < numDays; ++idx) {
+                allDayEvents[idx] = new ArrayList<>();
+
                 long dayStartMillis = firstDayStartMillis + idx*(24*60*60*1000);
                 events[idx] = a.eventRepo.getEventsBetweenMillis(dayStartMillis, dayStartMillis + (24*60*60*1000));
 
@@ -145,12 +148,15 @@ public class DayFragment extends Fragment implements UpdatableUi {
                     if(e.startMillis >= dayStartMillis+1000*60*60*24 || e.endMillis < dayStartMillis) {
                         iter.remove();
                     }
+                    else if(e.isAllDay) {
+                        iter.remove();
+                        allDayEvents[idx].add(e);
+                    }
                 }
             }
 
             EventsView view = v.findViewById(R.id.events);
-            view.setEvents(events, firstDayStartMillis);
-            view.setCal(a.selectedDate);
+            view.setEvents(events, allDayEvents, firstDayStartMillis);
         }
     }
 

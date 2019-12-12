@@ -79,7 +79,7 @@ public class EventDetailsActivity extends AppCompatActivity {
 
         if(e != null) {
             TextView title = findViewById(R.id.title);
-            title.setText(e.title);
+            title.setText(e.title.isEmpty() ? "Event" : e.title);
 
             DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM);
             SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");

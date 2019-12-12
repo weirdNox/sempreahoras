@@ -152,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         selectedDate.set(Calendar.HOUR_OF_DAY, 0);
         selectedDate.set(Calendar.MINUTE, 0);
         selectedDate.set(Calendar.SECOND, 0);
+        selectedDate.set(Calendar.MILLISECOND, 0);
 
         ((UpdatableUi) getSupportFragmentManager().findFragmentById(R.id.container)).updateUi();
     }

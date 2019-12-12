@@ -3,7 +3,6 @@ package com.sempreahoras.app;
 import android.graphics.Color;
 
 import androidx.annotation.NonNull;
-import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
@@ -26,12 +25,13 @@ public class Event {
     @NonNull String title = "";
     @NonNull String description = "";
 
-    // NOTE(nox): endMillis represents the effective end of the event; if the event is recurring, it will
-    // be the end of its final repeat
     long startMillis;
     long durationMillis;
+    boolean isAllDay = false;
     int repeatType = repeatNone;
     int repeatCount = 0;
+    // NOTE(nox): endMillis represents the effective end of the event; if the event is recurring, it will
+    // be the end of its final repeat
     long endMillis;
 
     long lastEdit = Calendar.getInstance().getTimeInMillis();
@@ -47,7 +47,7 @@ public class Event {
         Calendar date = Calendar.getInstance();
         startMillis = date.getTimeInMillis() + 1000*60*60;
         durationMillis = 1000*60*60;
-        calculateEnd();
+        ensureConsistency();
     }
 
     public Event(String title, int startYear, int startMonth, int startDay, int startHour, int startMinute,
@@ -63,14 +63,32 @@ public class Event {
         date.set(endYear, endMonth, endDay, endHour, endMinute, 0);
         durationMillis = date.getTimeInMillis() - startMillis;
 
-        calculateEnd();
+        ensureConsistency();
 
         if(startMillis > endMillis) {
             throw new IllegalArgumentException("Start is after the end!");
         }
     }
 
-    void calculateEnd() {
+    void ensureConsistency() {
+        if(isAllDay) {
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(startMillis);
+            c.set(Calendar.HOUR_OF_DAY, 0);
+            c.set(Calendar.MINUTE, 0);
+            c.set(Calendar.SECOND, 0);
+            c.set(Calendar.MILLISECOND, 0);
+            startMillis = c.getTimeInMillis();
+
+            c.setTimeInMillis(startMillis + durationMillis);
+            c.set(Calendar.HOUR_OF_DAY, 23);
+            c.set(Calendar.MINUTE, 59);
+            c.set(Calendar.SECOND, 59);
+            c.set(Calendar.MILLISECOND, 999);
+
+            durationMillis = (Math.round(Math.ceil((c.getTimeInMillis()-startMillis)/((float)24*60*60*1000)) * 24*60*60*1000)) - 1;
+        }
+
         if(repeatType == repeatNone) {
             endMillis = startMillis + durationMillis;
         }
@@ -81,12 +99,14 @@ public class Event {
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(startMillis);
             c.set(Calendar.DAY_OF_YEAR, c.get(Calendar.DAY_OF_YEAR) + 7*(repeatCount-1));
+
             endMillis = c.getTimeInMillis() + durationMillis;
         }
         else if(repeatType == repeatMonthly) {
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(startMillis);
             c.set(Calendar.MONTH, c.get(Calendar.MONTH) + (repeatCount-1));
+
             endMillis = c.getTimeInMillis() + durationMillis;
         }
         else {
@@ -94,6 +114,7 @@ public class Event {
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(startMillis);
             c.set(Calendar.YEAR, c.get(Calendar.YEAR) + (repeatCount-1));
+
             endMillis = c.getTimeInMillis() + durationMillis;
         }
     }
