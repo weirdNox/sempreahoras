@@ -1,5 +1,16 @@
 package com.sempreahoras.app;
 
+import android.app.DatePickerDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.SubMenu;
+import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -7,25 +18,22 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import android.app.Activity;
-import android.app.Application;
-import android.app.DatePickerDialog;
-import android.content.Intent;
-import android.graphics.Color;
-import android.os.Bundle;
-import android.util.SparseArray;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.SubMenu;
-import android.view.View;
-import android.widget.DatePicker;
-
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
 import java.text.DateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -86,6 +94,58 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         b = findViewById(R.id.floatingActionButton);
         b.setOnClickListener(v -> createEvent());
+
+
+        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+        JsonFactory jsonFactory = new JsonFactory();
+		jsonFactory.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
+		jsonFactory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
+        ObjectMapper mapper = new ObjectMapper(jsonFactory);
+        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        StringRequest getRequest = new StringRequest(Request.Method.GET, "http://192.168.1.213:8080/get?userId=2&since=" + prefs.getLong("lastEdit", 0),
+            response -> {
+                Log.d("Response", response);
+                try {
+                    Event[] events = mapper.readValue(response, Event[].class);
+
+                    long newLastEdit = prefs.getLong("lastEdit", 0);
+                    for(Event event : events) {
+                        if(event.lastEdit > newLastEdit) {
+                            newLastEdit = event.lastEdit;
+                        }
+                    }
+
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putLong("lastEdit", newLastEdit);
+                    editor.apply();
+                }
+                catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+            },
+            error -> {
+                Log.d("Error.Response", error.toString());
+            });
+        queue.add(getRequest);
+        // StringRequest postRequest = new StringRequest(Request.Method.POST, "http://192.168.1.213:8080",
+        //     response -> {
+        //         Log.d("Response", response);
+        //     },
+        //     error -> {
+        //         Log.d("Error.Response", error.toString());
+        //     })
+        // {
+        //     @Override
+        //     public byte[] getBody()  {
+        //         String result = "{\"type\":1, \"events\":[{\"id\":12},{\"id\":56}]}";
+        //         return result.getBytes();
+        //     }
+        // };
+        // queue.add(postRequest);
+
+
 
         updateUi();
     }

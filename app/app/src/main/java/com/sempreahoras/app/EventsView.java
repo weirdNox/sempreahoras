@@ -140,7 +140,6 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
     }
 
     void updateMaxScroll() {
-        Log.d(null, allDayMax + " ");
         maxScrollY = Math.round(24 * hourHeight - height + (numberOfDays > 1 ? headerHeight : 0) + (allDayMax > 0 ? allDayMax * allDayHeight + allDayExtra : 0));
         if(maxScrollY < 0) {
             maxScrollY = 0;
