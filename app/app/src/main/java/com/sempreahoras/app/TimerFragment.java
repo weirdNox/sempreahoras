@@ -16,25 +16,27 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.ikovac.timepickerwithseconds.MyTimePickerDialog;
+import com.ikovac.timepickerwithseconds.TimePicker;
+
+import java.util.Calendar;
 import java.util.Locale;
 
 public class TimerFragment extends Fragment implements UpdatableUi {
-    MainActivity a;
-    View v;
+    private MainActivity a;
+    private View v;
 
-    TextView counttempo;
-    EditText selecttempo;
-    EditText selecttempo2;
-    Button startbutton;
-    Button resetbutton;
+    Button time;
+    Button startStop;
+    Button reset;
 
-    private boolean run;
-    private boolean fin = false;
+    int timeInMillis = 0;
+    int remainingMillis;
 
-    private CountDownTimer countdown;
+    // NOTE: 0 - before start, 1 - running, 2 - paused
+    private int running = 0;
 
-    private static final long START_TIME_IN_MILLIS = 10000;
-    private long left_time_mili = START_TIME_IN_MILLIS;
+    private CountDownTimer timer;
 
     public TimerFragment() {}
 
@@ -48,94 +50,97 @@ public class TimerFragment extends Fragment implements UpdatableUi {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         v = inflater.inflate(R.layout.fragment_timer, container, false);
 
-        Button dateButton = a.findViewById(R.id.date_button);
-        dateButton.setVisibility(View.GONE);
+        a.findViewById(R.id.date_button).setVisibility(View.GONE);
+        a.b.hide();
 
-        counttempo   = v.findViewById(R.id.timeview);
-        selecttempo  = v.findViewById(R.id.seltime);
-        selecttempo2 = v.findViewById(R.id.seltime2);
-
-        startbutton = v.findViewById(R.id.sbuttontime);
-        resetbutton = v.findViewById(R.id.rbuttontime);
-
-        startbutton.setOnClickListener(v -> {
-            if(fin == false){
-                left_time_mili = readTime();
-                updtCounter();
-                fin = true;
-            }
-
-            if(run){
-                pauset();
-            }
-            else{
-                startt();
+        time = v.findViewById(R.id.time);
+        time.setOnClickListener(v -> {
+            if(running == 0) {
+                MyTimePickerDialog picker = new MyTimePickerDialog(a, (view, h, m, s) -> {
+                    timeInMillis = 1000*(s + 60*(m + 60*h));
+                    updateUi();
+                }, timeInMillis/(60*60*1000), (timeInMillis/(60*1000)) % 60, (timeInMillis/(1000)) % 60, true);
+                picker.show();
             }
         });
 
-        resetbutton.setOnClickListener(v -> resett());
+        startStop = v.findViewById(R.id.startStop);
+        startStop.setOnClickListener(v -> {
+            switch(running) {
+                case 0: {
+                    running = 1;
+                    if(timeInMillis == 0) {
+                        timeInMillis = 20*60*1000;
+                    }
+                    remainingMillis = timeInMillis;
+                    startTimer();
 
-        updtCounter();
+                    startStop.setText("Pause");
+                    reset.setVisibility(View.VISIBLE);
+                } break;
+
+                case 1: {
+                    running = 2;
+                    cancelTimer();
+
+                    startStop.setText("Continue");
+                } break;
+
+                case 2: {
+                    running = 1;
+                    startTimer();
+
+                    startStop.setText("Pause");
+                } break;
+            }
+
+            updateUi();
+        });
+
+        reset = v.findViewById(R.id.reset);
+        reset.setOnClickListener(v -> {
+            running = 0;
+            cancelTimer();
+            updateUi();
+        });
+
+        updateUi();
 
         return v;
     }
 
-    private void startt(){
-        countdown = new CountDownTimer(left_time_mili, 1000) {
-                @Override
-                public void onTick(long millisUntilFinished) {
-                    left_time_mili = millisUntilFinished;
-                    updtCounter();
-                }
+    void startTimer() {
+        timer = new CountDownTimer(remainingMillis, 100) {
+            @Override
+            public void onTick(long remaining) {
+                remainingMillis = (int)remaining;
+                updateUi();
+            }
 
-                @Override
-                public void onFinish() {
-                    run = false; //ja n se encontra a correr
-                    startbutton.setText("Start");
-                    startbutton.setVisibility(View.INVISIBLE); //acabou o tempo desaparece
-                    resetbutton.setVisibility(View.VISIBLE); //podemos dar reset dps de ter acabado o tempo
-                }
-            }.start();
-
-        run = true;
-        startbutton.setText("Pause");
-        resetbutton.setVisibility(View.INVISIBLE);
+            @Override
+            public void onFinish() {
+                running = 0;
+                updateUi();
+            }
+        }.start();
     }
 
-    private void pauset(){
-        countdown.cancel(); //para o count
-        run = false; // ja nao esta a correr, parado
-        startbutton.setText("Start"); //altera nome do botao outra vez para start
-        resetbutton.setVisibility(View.VISIBLE); //coloca botao reset visivel outra vez, pois timer encontra-se parado
-
-    }
-
-    private void resett(){
-        left_time_mili = readTime(); //volta a ter o valor inicial
-        updtCounter(); //update na string do counter
-        resetbutton.setVisibility(View.INVISIBLE); //nao aparece pois acabamos de fazer reset
-        startbutton.setVisibility(View.VISIBLE);
-    }
-
-    private void updtCounter(){
-        int minutos = (int) (left_time_mili/1000)/60;
-        int segundos = (int) (left_time_mili/1000)%60;
-
-        String t_left = String.format(Locale.getDefault(),"%02d:%02d", minutos,segundos);
-
-        counttempo.setText(t_left);
-    }
-
-    private long readTime(){
-        if(selecttempo.getText().toString().equals("00") && selecttempo2.getText().toString().equals("00")){
-            return START_TIME_IN_MILLIS;
+    void cancelTimer() {
+        if(timer != null) {
+            timer.cancel();
+            timer = null;
         }
-        int minutos = Integer.parseInt(selecttempo.getText().toString());
-        int segundos = Integer.parseInt(selecttempo2.getText().toString());
-        long resultado = minutos*1000*60 + segundos*1000;
-        return resultado;
     }
 
     @Override
-    public void updateUi() {}
+    public void updateUi() {
+        if(running == 0) {
+            time.setText(String.format("%02d:%02d:%02d", timeInMillis/(60*60*1000), (timeInMillis/(60*1000)) % 60, (timeInMillis/(1000)) % 60));
+            startStop.setText("Start");
+            reset.setVisibility(View.GONE);
+        }
+        else {
+            time.setText(String.format("%02d:%02d:%04.1f", remainingMillis/(60*60*1000), (remainingMillis/(60*1000)) % 60, ((remainingMillis/(100)) % 600) / 10.0f));
+        }
+    }
 }

@@ -62,6 +62,7 @@ public class DayFragment extends Fragment implements UpdatableUi {
 
         Button dateButton = a.findViewById(R.id.date_button);
         dateButton.setVisibility(View.VISIBLE);
+        a.b.show();
 
         updateUi();
 
