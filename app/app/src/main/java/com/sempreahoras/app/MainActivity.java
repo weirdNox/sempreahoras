@@ -133,6 +133,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             } break;
 
             case STOPWATCH: {
+                getSupportFragmentManager().beginTransaction().replace(R.id.container, new StopwatchFragment()).commit();
             } break;
 
             default: {

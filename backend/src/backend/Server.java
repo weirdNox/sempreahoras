@@ -228,7 +228,6 @@ public class Server {
 
 	void sendResponse(HttpExchange t, int code, String response) {
         OutputStream os = t.getResponseBody();
-        System.out.println(response);
 		byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
 
         try {
