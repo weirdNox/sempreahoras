@@ -1,14 +1,15 @@
 package com.sempreahoras.app;
 
 import android.app.Application;
+import android.content.Context;
 
 import java.util.List;
 
 public class EventRepository {
     private EventDao eventDao;
 
-    EventRepository(Application application) {
-        EventDatabase db = EventDatabase.getDatabase(application);
+    EventRepository(Context context) {
+        EventDatabase db = EventDatabase.getDatabase(context);
         eventDao = db.eventDao();
     }
 
@@ -22,8 +23,13 @@ public class EventRepository {
     }
 
     void insert(Event e) {
-        e.ensureConsistency();
-        eventDao.insert(e);
+        if(e.deleted) {
+            deleteEvent(e.id);
+        }
+        else {
+            e.ensureConsistency();
+            eventDao.insert(e);
+        }
     }
 
     void deleteEvent(long id) {

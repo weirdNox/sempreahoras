@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 
@@ -27,10 +28,14 @@ public class EventDetailsActivity extends AppCompatActivity {
 
     long eventId;
 
+    private ServerSyncer syncer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_details);
+
+        syncer = new ServerSyncer(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -64,8 +69,16 @@ public class EventDetailsActivity extends AppCompatActivity {
             } break;
 
             case OPTION_DELETE: {
-                eventRepo.deleteEvent(eventId);
-                finish();
+                syncer.deleteEvent(eventId, MainActivity.userId, (err) -> {
+                        if(err == null) {
+                            eventRepo.deleteEvent(eventId);
+                            finish();
+                        }
+                        else {
+                            Toast.makeText(this, "Could not delete event: " + (err == null ? "Unknown error" : err), Toast.LENGTH_LONG).show();
+                        }
+                    });
+
             } break;
 
             default: return false;

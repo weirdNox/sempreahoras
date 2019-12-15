@@ -7,6 +7,8 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Calendar;
 
 @Entity(tableName = "event_table")
@@ -40,8 +42,10 @@ public class Event {
 
     @NonNull String location = "";
 
-    @Ignore public int numColumns;
-    @Ignore public int columnIdx;
+    boolean deleted = false;
+
+    @JsonIgnore @Ignore public int numColumns;
+    @JsonIgnore @Ignore public int columnIdx;
 
     public Event() {
         Calendar date = Calendar.getInstance();

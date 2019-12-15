@@ -1,15 +1,16 @@
 package com.sempreahoras.app;
 
 import android.app.DatePickerDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -18,23 +19,15 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
 import java.text.DateFormat;
 import java.util.Calendar;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     public static final String GOOGLE_ACC = "google_account";
@@ -55,12 +48,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     EventRepository eventRepo;
 
+    private ServerSyncer syncer;
+    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        eventRepo = new EventRepository(getApplication());
+        eventRepo = new EventRepository(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -95,57 +91,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         b = findViewById(R.id.floatingActionButton);
         b.setOnClickListener(v -> createEvent());
 
+        syncer = new ServerSyncer(this);
+        scheduler.scheduleWithFixedDelay(fetchNewData, 0, 3, TimeUnit.MINUTES);
 
-        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
-        JsonFactory jsonFactory = new JsonFactory();
-		jsonFactory.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
-		jsonFactory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
-        ObjectMapper mapper = new ObjectMapper(jsonFactory);
-        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-
-        RequestQueue queue = Volley.newRequestQueue(this);
-        StringRequest getRequest = new StringRequest(Request.Method.GET, "http://192.168.1.213:8080/get?userId=2&since=" + prefs.getLong("lastEdit", 0),
-            response -> {
-                Log.d("Response", response);
-                try {
-                    Event[] events = mapper.readValue(response, Event[].class);
-
-                    long newLastEdit = prefs.getLong("lastEdit", 0);
-                    for(Event event : events) {
-                        if(event.lastEdit > newLastEdit) {
-                            newLastEdit = event.lastEdit;
-                        }
-                    }
-
-                    SharedPreferences.Editor editor = prefs.edit();
-                    editor.putLong("lastEdit", newLastEdit);
-                    editor.apply();
+        Button syncNow = findViewById(R.id.syncNow);
+        syncNow.setOnClickListener(v -> {
+            ((DrawerLayout)findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
+            syncer.fetchNewData(error -> {
+                if(error == null) {
+                    Toast.makeText(this, "Finished syncing.", Toast.LENGTH_SHORT).show();
+                    updateUi();
                 }
-                catch (JsonProcessingException e) {
-                    e.printStackTrace();
+                else {
+                    Toast.makeText(this, "Could not fetch data from server: " + error, Toast.LENGTH_LONG).show();
                 }
-            },
-            error -> {
-                Log.d("Error.Response", error.toString());
             });
-        queue.add(getRequest);
-        // StringRequest postRequest = new StringRequest(Request.Method.POST, "http://192.168.1.213:8080",
-        //     response -> {
-        //         Log.d("Response", response);
-        //     },
-        //     error -> {
-        //         Log.d("Error.Response", error.toString());
-        //     })
-        // {
-        //     @Override
-        //     public byte[] getBody()  {
-        //         String result = "{\"type\":1, \"events\":[{\"id\":12},{\"id\":56}]}";
-        //         return result.getBytes();
-        //     }
-        // };
-        // queue.add(postRequest);
-
-
+        });
 
         updateUi();
     }
@@ -233,4 +194,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onPostResume();
         updateUi();
     }
+
+    Runnable fetchNewData = () -> {
+        syncer.fetchNewData(error -> {
+            if(error == null) {
+                updateUi();
+            }
+            else {
+                Toast.makeText(this, "Could not fetch data from server: " + error, Toast.LENGTH_LONG).show();
+            }
+        });
+    };
 }

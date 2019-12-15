@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -23,7 +24,9 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
@@ -58,7 +61,8 @@ public class Server {
 	                                "EndMillis INTEGER NOT NULL," +
 	                                "LastEdit INTEGER NOT NULL," +
 	                                "Color INTEGER NOT NULL," +
-	                                "Location STRING NOT NULL" +
+	                                "Location STRING NOT NULL," +
+	                                "Deleted BOOLEAN DEFAULT false" +
 	                                ")");
 		} catch (SQLException e) {
 			throw new RuntimeException("Could not open database!", e);
@@ -117,7 +121,7 @@ public class Server {
 			t.close();
         });
 
-		server.createContext("/insert", (t) -> {
+		server.createContext("/insertEvent", (t) -> {
             String method = t.getRequestMethod();
             if(method.equals("POST")) {
                 try {
@@ -158,9 +162,8 @@ public class Server {
                         }
                     }
                 }
-                catch(JsonParseException e) {
+                catch(JsonParseException|UnrecognizedPropertyException e) {
                 	sendResponse(t, 400, "Invalid input JSON");
-                	e.printStackTrace();
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -173,16 +176,63 @@ public class Server {
 			t.close();
         });
 
-		ExecutorService serverExecutor = Executors.newFixedThreadPool(4);
+		server.createContext("/deleteEvent", (t) -> {
+            String method = t.getRequestMethod();
+            if(method.equals("POST")) {
+                try {
+                	Event event = new Event();
+
+                    InputStream input = t.getRequestBody();
+                    JsonNode json = mapper.readTree(input);
+                    event.id = json.get("id").asLong();
+                    event.userId = json.get("userId").asText();
+
+                    if(event.userId.isEmpty()) {
+                    	sendResponse(t, 401, "Invalid user id");
+                    }
+                    else if(event.id == 0) {
+                    	sendResponse(t, 400, "Invalid event id");
+                    }
+                    else {
+                        event.lastEdit = Calendar.getInstance().getTimeInMillis();
+                        event.deleted = true;
+                        PreparedStatement statement = event.prepareStatement(dbConn);
+
+                        statement.executeUpdate();
+                        if(statement.getUpdateCount() == 1) {
+                            sendResponse(t, 200, "");
+                        }
+                        else {
+                            sendResponse(t, 500, "Could not delete event");
+                        }
+                    }
+                }
+                catch(JsonParseException|UnrecognizedPropertyException e) {
+                	sendResponse(t, 400, "Invalid input JSON");
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            else {
+            	sendResponse(t, 405, "Invalid method");
+            }
+
+			t.close();
+        });
+
+ 		ExecutorService serverExecutor = Executors.newFixedThreadPool(4);
 		server.setExecutor(serverExecutor);
         server.start();
 	}
 
 	void sendResponse(HttpExchange t, int code, String response) {
         OutputStream os = t.getResponseBody();
-		byte[] responseBytes = response.getBytes();
+        System.out.println(response);
+		byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
 
         try {
+        	t.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
 			t.sendResponseHeaders(code, responseBytes.length);
 	        os.write(responseBytes);
 	        os.close();

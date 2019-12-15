@@ -144,6 +144,10 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         if(maxScrollY < 0) {
             maxScrollY = 0;
         }
+
+        if(scrollY > maxScrollY) {
+            scrollY = maxScrollY;
+        }
     }
 
     float getEffectiveScroll() {

@@ -28,26 +28,25 @@ public class Event {
                  ((   3 & 0xff) <<  0));
     String location = "";
 
+    boolean deleted = false;
+
     Event() {}
 
-    Event(ResultSet set) {
-    	try {
-			id             = set.getLong("Id");
-			userId         = set.getString("UserId");
-			title          = set.getString("Title");
-			description    = set.getString("Description");
-			startMillis    = set.getLong("StartMillis");
-			durationMillis = set.getLong("DurationMillis");
-			isAllDay       = set.getBoolean("IsAllDay");
-			repeatType     = set.getInt("RepeatType");
-			repeatCount    = set.getInt("RepeatCount");
-			endMillis      = set.getLong("EndMillis");
-			lastEdit       = set.getLong("LastEdit");
-			color          = set.getInt("Color");
-			location       = set.getString("Location");
-		} catch (SQLException e) {
-			throw new RuntimeException("Could not initialize event from SQL data", e);
-		}
+    Event(ResultSet set) throws SQLException {
+		id             = set.getLong("Id");
+		userId         = set.getString("UserId");
+		title          = set.getString("Title");
+		description    = set.getString("Description");
+		startMillis    = set.getLong("StartMillis");
+		durationMillis = set.getLong("DurationMillis");
+		isAllDay       = set.getBoolean("IsAllDay");
+		repeatType     = set.getInt("RepeatType");
+		repeatCount    = set.getInt("RepeatCount");
+		endMillis      = set.getLong("EndMillis");
+		lastEdit       = set.getLong("LastEdit");
+		color          = set.getInt("Color");
+		location       = set.getString("Location");
+		deleted        = set.getBoolean("Deleted");
     }
 
     PreparedStatement prepareStatement(Connection dbConn) throws SQLException {
@@ -81,11 +80,13 @@ public class Event {
                                                 "EndMillis," +
                                                 "LastEdit," +
                                                 "Color," +
-                                                "Location" +
-                                                ") = (?,?,?,?,?,?,?,?,?,?,?) " +
+                                                "Location," +
+                                                "Deleted" +
+                                                ") = (?,?,?,?,?,?,?,?,?,?,?,?) " +
                                                 "WHERE Id = ? AND UserId = ?", Statement.RETURN_GENERATED_KEYS);
-            statement.setLong(12, id);
-            statement.setString(13, userId);
+            statement.setBoolean(12, deleted);
+            statement.setLong(13, id);
+            statement.setString(14, userId);
         }
 
         statement.setString(1, title);

@@ -39,10 +39,18 @@ public class EventEditorActivity extends AppCompatActivity {
     Button endDate;
     Button endTime;
 
+    private ServerSyncer syncer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_editor);
+
+        if(!ServerSyncer.isNetworkAvailable(this)) {
+            Toast.makeText(this, "You need to be connected to the Internet for editing events!", Toast.LENGTH_LONG).show();
+        }
+
+        syncer = new ServerSyncer(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -100,8 +108,15 @@ public class EventEditorActivity extends AppCompatActivity {
             e.location = location.getText().toString();
             e.description = desc.getText().toString();
 
-            eventRepo.insert(e);
-            finish();
+            syncer.sendNewEvent(e, (event, err) -> {
+                if(event != null) {
+                    eventRepo.insert(event);
+                    finish();
+                }
+                else {
+                    Toast.makeText(this, "Could not edit event: " + (err == null ? "Unknown error" : err), Toast.LENGTH_LONG).show();
+                }
+            });
         });
 
         final ColorPicker cp = new ColorPicker(this, Color.red(e.color), Color.green(e.color), Color.blue(e.color));

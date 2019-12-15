@@ -104,7 +104,13 @@ public class DayFragment extends Fragment implements UpdatableUi {
 
                             Calendar day = Calendar.getInstance();
                             day.setTimeInMillis(dayStartMillis);
-                            day.set(Calendar.DAY_OF_WEEK, start.get(Calendar.DAY_OF_WEEK));
+
+                            int daysDiff = start.get(Calendar.DAY_OF_WEEK) - day.get(Calendar.DAY_OF_WEEK);
+                            if(daysDiff > 0) {
+                                daysDiff -= 7;
+                            }
+
+                            day.set(Calendar.DAY_OF_YEAR, day.get(Calendar.DAY_OF_YEAR) + daysDiff);
                             day.set(Calendar.HOUR_OF_DAY, start.get(Calendar.HOUR_OF_DAY));
                             day.set(Calendar.MINUTE, start.get(Calendar.MINUTE));
                             day.set(Calendar.SECOND, start.get(Calendar.SECOND));
