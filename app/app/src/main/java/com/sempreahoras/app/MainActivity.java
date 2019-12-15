@@ -3,8 +3,6 @@ package com.sempreahoras.app;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Looper;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
@@ -40,13 +38,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private final int TIMER = 4;
     private final int STOPWATCH = 5;
 
-    private static final long millisPerDay = 86400000L;
-
     DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.FULL);
     Calendar selectedDate = Calendar.getInstance();
     FloatingActionButton b;
 
-    EventRepository eventRepo;
+    Repository repo;
 
     private ServerSyncer syncer;
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -56,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        eventRepo = new EventRepository(this);
+        repo = new Repository(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -89,7 +85,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getSupportFragmentManager().executePendingTransactions();
 
         b = findViewById(R.id.floatingActionButton);
-        b.setOnClickListener(v -> createEvent());
 
         syncer = new ServerSyncer(this);
         scheduler.scheduleWithFixedDelay(fetchNewData, 0, 3, TimeUnit.MINUTES);
@@ -126,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             } break;
 
             case TASKS: {
+                getSupportFragmentManager().beginTransaction().replace(R.id.container, new TasksFragment()).commit();
             } break;
 
             case TIMER: {
@@ -144,10 +140,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         updateUi();
 
         return true;
-    }
-
-    static public int getDayNumber(Calendar cal) {
-        return (int)(cal.getTimeInMillis() / millisPerDay);
     }
 
     @Override
@@ -187,6 +179,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     void viewEvent(Event e) {
         Intent intent = new Intent(this, EventDetailsActivity.class);
         intent.putExtra(EventDetailsActivity.EVENT_ID, e.id);
+        startActivity(intent);
+    }
+
+    void createTask() {
+        Intent intent = new Intent(this, TaskEditorActivity.class);
+        startActivity(intent);
+    }
+
+    void viewTask(Task t) {
+        Intent intent = new Intent(this, TaskDetailsActivity.class);
+        intent.putExtra(TaskDetailsActivity.TASK_ID, t.id);
         startActivity(intent);
     }
 

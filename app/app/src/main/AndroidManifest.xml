@@ -13,10 +13,17 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".EventEditorActivity"
+      <activity
+          android:name=".EventEditorActivity"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".EventDetailsActivity"
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".TaskEditorActivity"
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".TaskDetailsActivity"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".MainActivity"

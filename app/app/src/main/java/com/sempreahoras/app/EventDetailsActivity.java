@@ -12,8 +12,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -24,7 +22,7 @@ public class EventDetailsActivity extends AppCompatActivity {
 
     final static int EDIT_EVENT_CODE = 1;
     final static String EVENT_ID = "event_id";
-    EventRepository eventRepo;
+    Repository repo;
 
     long eventId;
 
@@ -42,7 +40,7 @@ public class EventDetailsActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("View event");
 
-        eventRepo = new EventRepository(getApplication());
+        repo = new Repository(getApplication());
 
         long eventId = getIntent().getLongExtra(EVENT_ID, -1);
         if(eventId < 0) {
@@ -71,7 +69,7 @@ public class EventDetailsActivity extends AppCompatActivity {
             case OPTION_DELETE: {
                 syncer.deleteEvent(eventId, MainActivity.userId, (err) -> {
                         if(err == null) {
-                            eventRepo.deleteEvent(eventId);
+                            repo.deleteEvent(eventId);
                             finish();
                         }
                         else {
@@ -88,7 +86,7 @@ public class EventDetailsActivity extends AppCompatActivity {
     }
 
     void updateUi() {
-        Event e = eventRepo.getEventById(eventId);
+        Event e = repo.getEventById(eventId);
 
         if(e != null) {
             TextView title = findViewById(R.id.title);

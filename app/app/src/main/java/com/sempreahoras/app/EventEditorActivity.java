@@ -28,7 +28,7 @@ import java.util.List;
 
 public class EventEditorActivity extends AppCompatActivity {
     final static String EVENT_ID = "event_id";
-    EventRepository eventRepo;
+    Repository repo;
     Event e;
 
     DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM);
@@ -57,14 +57,14 @@ public class EventEditorActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("Edit event");
 
-        eventRepo = new EventRepository(getApplication());
+        repo = new Repository(getApplication());
 
         long eventId = getIntent().getLongExtra(EVENT_ID, -1);
         if(eventId < 0) {
             e = new Event();
         }
         else {
-            e = eventRepo.getEventById(eventId);
+            e = repo.getEventById(eventId);
 
             if(e == null) {
                 throw new IllegalArgumentException("Non existing ID passed in.");
@@ -110,7 +110,7 @@ public class EventEditorActivity extends AppCompatActivity {
 
             syncer.sendNewEvent(e, (event, err) -> {
                 if(event != null) {
-                    eventRepo.insert(event);
+                    repo.insertEvent(event);
                     finish();
                 }
                 else {

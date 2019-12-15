@@ -63,6 +63,7 @@ public class DayFragment extends Fragment implements UpdatableUi {
         Button dateButton = a.findViewById(R.id.date_button);
         dateButton.setVisibility(View.VISIBLE);
         a.b.show();
+        a.b.setOnClickListener(v -> a.createEvent());
 
         updateUi();
 
@@ -93,7 +94,7 @@ public class DayFragment extends Fragment implements UpdatableUi {
                 allDayEvents[idx] = new ArrayList<>();
 
                 long dayStartMillis = firstDayStartMillis + idx*(24*60*60*1000);
-                events[idx] = a.eventRepo.getEventsBetweenMillis(dayStartMillis, dayStartMillis + (24*60*60*1000));
+                events[idx] = a.repo.getEventsBetweenMillis(dayStartMillis, dayStartMillis + (24*60*60*1000));
 
                 ListIterator<Event> iter = events[idx].listIterator();
                 while(iter.hasNext()) {

@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Calendar;
 
 public class Event {
 	long id = 0;
@@ -51,6 +52,9 @@ public class Event {
 
     PreparedStatement prepareStatement(Connection dbConn) throws SQLException {
         PreparedStatement statement;
+
+        lastEdit = Calendar.getInstance().getTimeInMillis();
+
         if(id == 0) {
         	statement = dbConn.prepareStatement("INSERT OR ABORT INTO events (" +
                                                 "Title," +

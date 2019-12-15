@@ -1,16 +1,19 @@
 package com.sempreahoras.app;
 
-import android.app.Application;
 import android.content.Context;
+
+import androidx.room.Dao;
 
 import java.util.List;
 
-public class EventRepository {
+public class Repository {
     private EventDao eventDao;
+    private TaskDao taskDao;
 
-    EventRepository(Context context) {
-        EventDatabase db = EventDatabase.getDatabase(context);
+    Repository(Context context) {
+        LocalDatabase db = LocalDatabase.getDatabase(context);
         eventDao = db.eventDao();
+        taskDao = db.taskDao();
     }
 
     List<Event> getEventsBetweenMillis(long startMillis, long endMillis) {
@@ -22,7 +25,7 @@ public class EventRepository {
         return eventDao.getEventById(id);
     }
 
-    void insert(Event e) {
+    void insertEvent(Event e) {
         if(e.deleted) {
             deleteEvent(e.id);
         }
@@ -34,5 +37,26 @@ public class EventRepository {
 
     void deleteEvent(long id) {
         eventDao.deleteEvent(id);
+    }
+
+    void insertTask(Task t) {
+        if(t.deleted) {
+            deleteTask(t.id);
+        }
+        else {
+            taskDao.insert(t);
+        }
+    }
+
+    List<Task> getTasks() {
+        return taskDao.getTasks();
+    }
+
+    Task getTaskById(long id) {
+        return taskDao.getTaskById(id);
+    }
+
+    void deleteTask(long id) {
+        taskDao.deleteTask(id);
     }
 }
