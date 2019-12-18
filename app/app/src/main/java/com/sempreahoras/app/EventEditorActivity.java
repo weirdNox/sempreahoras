@@ -110,6 +110,7 @@ public class EventEditorActivity extends AppCompatActivity {
 
             syncer.sendNewEvent(e, (event, err) -> {
                 if(event != null) {
+                    Toast.makeText(this, "Event successfully saved.", Toast.LENGTH_LONG).show();
                     repo.insertEvent(event);
                     finish();
                 }

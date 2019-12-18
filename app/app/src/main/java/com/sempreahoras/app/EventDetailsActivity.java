@@ -69,6 +69,7 @@ public class EventDetailsActivity extends AppCompatActivity {
             case OPTION_DELETE: {
                 syncer.deleteEvent(eventId, MainActivity.userId, (err) -> {
                         if(err == null) {
+                            Toast.makeText(this, "Event successfully deleted.", Toast.LENGTH_LONG).show();
                             repo.deleteEvent(eventId);
                             finish();
                         }

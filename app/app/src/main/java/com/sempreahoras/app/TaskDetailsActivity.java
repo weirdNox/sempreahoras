@@ -69,6 +69,7 @@ public class TaskDetailsActivity extends AppCompatActivity {
             case OPTION_DELETE: {
                 syncer.deleteTask(taskId, MainActivity.userId, (err) -> {
                     if(err == null) {
+                        Toast.makeText(this, "Task successfully deleted", Toast.LENGTH_LONG).show();
                         repo.deleteTask(taskId);
                         finish();
                     }

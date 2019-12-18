@@ -74,6 +74,7 @@ public class TaskEditorActivity extends AppCompatActivity {
 
             syncer.sendNewTask(t, (task, err) -> {
                 if(task != null) {
+                    Toast.makeText(this, "Task successfully saved", Toast.LENGTH_LONG).show();
                     repo.insertTask(task);
                     finish();
                 }
