@@ -29,14 +29,17 @@ import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     public static final String GOOGLE_ACC = "google_account";
-    static String userId = "testId";
+    public static final String TestId = "testId";
+
+    static String userId = TestId;
 
     private final int DAY = 0;
     private final int WEEK = 1;
-    private final int MONTH = 2;
     private final int TASKS = 3;
     private final int TIMER = 4;
     private final int STOPWATCH = 5;
+
+    private final int LOGOUT = 1000;
 
     DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.FULL);
     Calendar selectedDate = Calendar.getInstance();
@@ -67,18 +70,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = (NavigationView) findViewById(R.id.navigation);
         navigationView.setNavigationItemSelectedListener(this);
         Menu menu = navigationView.getMenu();
-        SubMenu sub = menu.addSubMenu("View type");
+        SubMenu sub = menu.addSubMenu("Calendar");
         sub.add(0, DAY, Menu.NONE, "Day");
         sub.add(0, WEEK, Menu.NONE, "Week");
-        sub.add(0, MONTH, Menu.NONE, "Month");
 
-        menu.add(0, TASKS, Menu.NONE, "Tasks");
-        menu.add(0, TIMER, Menu.NONE, "Timer");
-        menu.add(0, STOPWATCH, Menu.NONE, "Stopwatch");
+        sub = menu.addSubMenu("Utilities");
+        sub.add(0, TASKS, Menu.NONE, "Tasks");
+        sub.add(0, TIMER, Menu.NONE, "Timer");
+        sub.add(0, STOPWATCH, Menu.NONE, "Stopwatch");
+
+        menu.add(0, LOGOUT, Menu.NONE, "Logout");
 
         GoogleSignInAccount account = getIntent().getParcelableExtra(GOOGLE_ACC);
         if(account != null) {
             userId = account.getId();
+        }
+        else {
+            userId = TestId;
         }
 
         getSupportFragmentManager().beginTransaction().replace(R.id.container, new DayFragment(7)).commit();
@@ -117,9 +125,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 getSupportFragmentManager().beginTransaction().replace(R.id.container, new DayFragment(7)).commit();
             } break;
 
-            case MONTH: {
-            } break;
-
             case TASKS: {
                 getSupportFragmentManager().beginTransaction().replace(R.id.container, new TasksFragment()).commit();
             } break;
@@ -130,6 +135,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             case STOPWATCH: {
                 getSupportFragmentManager().beginTransaction().replace(R.id.container, new StopwatchFragment()).commit();
+            } break;
+
+            case LOGOUT: {
+                Intent data = new Intent();
+                setResult(RESULT_OK, data);
+                finish();
             } break;
 
             default: {

@@ -12,12 +12,12 @@ public interface TaskDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Task t);
 
-    @Query("SELECT * from task_table")
-    List<Task> getTasks();
+    @Query("SELECT * from task_table WHERE userId == :userId")
+    List<Task> getTasks(String userId);
 
-    @Query("SELECT * from task_table WHERE id == :id LIMIT 1")
-    Task getTaskById(long id);
+    @Query("SELECT * from task_table WHERE id == :id AND userId == :userId LIMIT 1")
+    Task getTaskById(long id, String userId);
 
-    @Query("DELETE from task_table WHERE id == :id")
-    void deleteTask(long id);
+    @Query("DELETE from task_table WHERE id == :id AND userId == :userId")
+    void deleteTask(long id, String userId);
 }

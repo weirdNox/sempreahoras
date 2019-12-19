@@ -16,6 +16,7 @@ import com.google.android.gms.tasks.Task;
 
 public class SignInActivity extends AppCompatActivity implements View.OnClickListener {
     private final int RC_SIGN_IN = 123;
+    private final int MAIN = 124;
     protected GoogleSignInClient googleSignInClient;
 
     @Override
@@ -38,6 +39,9 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             handleSignInResult(task);
+        }
+        else if(requestCode == MAIN) {
+            googleSignInClient.signOut();
         }
     }
 
@@ -71,14 +75,12 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
         if (account != null) {
             Intent intent = new Intent(this, MainActivity.class);
             intent.putExtra(MainActivity.GOOGLE_ACC, account);
-            startActivity(intent);
-            finish();
+            startActivityForResult(intent, MAIN);
         }
     }
 
     public void testSignIn(View v) {
         Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
-        finish();
+        startActivityForResult(intent, MAIN);
     }
 }

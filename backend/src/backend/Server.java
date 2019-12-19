@@ -50,7 +50,7 @@ public class Server {
 	        Statement statement = dbConn.createStatement();
 	        statement.addBatch("CREATE TABLE IF NOT EXISTS events (" +
                                "Id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                               "UserId STRING NOT NULL," +
+                               "UserId TEXT NOT NULL," +
                                "Title TEXT NOT NULL," +
                                "Description TEXT NOT NULL," +
                                "StartMillis INTEGER NOT NULL," +
@@ -61,13 +61,13 @@ public class Server {
                                "EndMillis INTEGER NOT NULL," +
                                "LastEdit INTEGER NOT NULL," +
                                "Color INTEGER NOT NULL," +
-                               "Location STRING NOT NULL," +
+                               "Location TEXT NOT NULL," +
                                "Deleted BOOLEAN DEFAULT false" +
                                ")");
 
 	        statement.addBatch("CREATE TABLE IF NOT EXISTS tasks (" +
                                "Id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                               "UserId STRING NOT NULL," +
+                               "UserId TEXT NOT NULL," +
                                "Title TEXT NOT NULL," +
                                "Description TEXT NOT NULL," +
                                "Color INTEGER NOT NULL," +

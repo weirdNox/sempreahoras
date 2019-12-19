@@ -17,12 +17,12 @@ public class Repository {
     }
 
     List<Event> getEventsBetweenMillis(long startMillis, long endMillis) {
-        return eventDao.getEventsBetweenMillis(startMillis,endMillis);
+        return eventDao.getEventsBetweenMillis(startMillis,endMillis, MainActivity.userId);
     }
 
 
     Event getEventById(long id) {
-        return eventDao.getEventById(id);
+        return eventDao.getEventById(id, MainActivity.userId);
     }
 
     void insertEvent(Event e) {
@@ -36,7 +36,7 @@ public class Repository {
     }
 
     void deleteEvent(long id) {
-        eventDao.deleteEvent(id);
+        eventDao.deleteEvent(id, MainActivity.userId);
     }
 
     void insertTask(Task t) {
@@ -49,14 +49,14 @@ public class Repository {
     }
 
     List<Task> getTasks() {
-        return taskDao.getTasks();
+        return taskDao.getTasks(MainActivity.userId);
     }
 
     Task getTaskById(long id) {
-        return taskDao.getTaskById(id);
+        return taskDao.getTaskById(id, MainActivity.userId);
     }
 
     void deleteTask(long id) {
-        taskDao.deleteTask(id);
+        taskDao.deleteTask(id, MainActivity.userId);
     }
 }
