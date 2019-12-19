@@ -179,7 +179,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         selectedDate.set(Calendar.SECOND, 0);
         selectedDate.set(Calendar.MILLISECOND, 0);
 
-        ((UpdatableUi) getSupportFragmentManager().findFragmentById(R.id.container)).updateUi();
+        UpdatableUi ui = (UpdatableUi) getSupportFragmentManager().findFragmentById(R.id.container);
+        if(ui != null) {
+            ui.updateUi();
+        }
     }
 
     void createEvent() {
