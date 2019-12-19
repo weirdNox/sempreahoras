@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     static String userId = TestId;
 
+    private final int DAY_LIST = -1;
     private final int DAY = 0;
     private final int WEEK = 1;
     private final int TASKS = 3;
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
         Menu menu = navigationView.getMenu();
         SubMenu sub = menu.addSubMenu("Calendar");
+        sub.add(0, DAY_LIST, Menu.NONE, "List");
         sub.add(0, DAY, Menu.NONE, "Day");
         sub.add(0, WEEK, Menu.NONE, "Week");
 
@@ -117,6 +119,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
+            case DAY_LIST: {
+                getSupportFragmentManager().beginTransaction().replace(R.id.container, new EventListFragment()).commit();
+            } break;
+
             case DAY: {
                 getSupportFragmentManager().beginTransaction().replace(R.id.container, new DayFragment()).commit();
             } break;

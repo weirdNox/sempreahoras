@@ -4,6 +4,7 @@ import android.content.Context;
 
 import androidx.room.Dao;
 
+import java.util.Calendar;
 import java.util.List;
 
 public class Repository {
@@ -18,6 +19,75 @@ public class Repository {
 
     List<Event> getEventsBetweenMillis(long startMillis, long endMillis) {
         return eventDao.getEventsBetweenMillis(startMillis,endMillis, MainActivity.userId);
+    }
+
+    void getEventsForDay(long dayStartMillis, List<Event> eventsForDay, List<Event> allDayEvents) {
+        List<Event> events = getEventsBetweenMillis(dayStartMillis, dayStartMillis + (24*60*60*1000));
+
+        for(Event e : events) {
+            switch(e.repeatType) {
+                case Event.repeatWeekly: {
+                    Calendar start = Calendar.getInstance();
+                    start.setTimeInMillis(e.startMillis);
+
+                    Calendar day = Calendar.getInstance();
+                    day.setTimeInMillis(dayStartMillis);
+
+                    int daysDiff = start.get(Calendar.DAY_OF_WEEK) - day.get(Calendar.DAY_OF_WEEK);
+                    if(daysDiff > 0) {
+                        daysDiff -= 7;
+                    }
+
+                    day.set(Calendar.DAY_OF_YEAR, day.get(Calendar.DAY_OF_YEAR) + daysDiff);
+                    day.set(Calendar.HOUR_OF_DAY, start.get(Calendar.HOUR_OF_DAY));
+                    day.set(Calendar.MINUTE, start.get(Calendar.MINUTE));
+                    day.set(Calendar.SECOND, start.get(Calendar.SECOND));
+
+                    e.startMillis = day.getTimeInMillis();
+                    e.endMillis = e.startMillis + e.durationMillis;
+                } break;
+
+                case Event.repeatMonthly: {
+                    Calendar start = Calendar.getInstance();
+                    start.setTimeInMillis(e.startMillis);
+
+                    Calendar day = Calendar.getInstance();
+                    day.setTimeInMillis(dayStartMillis);
+                    day.set(Calendar.DAY_OF_MONTH, start.get(Calendar.DAY_OF_MONTH));
+                    day.set(Calendar.HOUR_OF_DAY, start.get(Calendar.HOUR_OF_DAY));
+                    day.set(Calendar.MINUTE, start.get(Calendar.MINUTE));
+                    day.set(Calendar.SECOND, start.get(Calendar.SECOND));
+
+                    e.startMillis = day.getTimeInMillis();
+                    e.endMillis = e.startMillis + e.durationMillis;
+                } break;
+
+                case Event.repeatYearly: {
+                    Calendar start = Calendar.getInstance();
+                    start.setTimeInMillis(e.startMillis);
+
+                    Calendar day = Calendar.getInstance();
+                    day.setTimeInMillis(dayStartMillis);
+                    day.set(Calendar.MONTH, start.get(Calendar.MONTH));
+                    day.set(Calendar.DAY_OF_MONTH, start.get(Calendar.DAY_OF_MONTH));
+                    day.set(Calendar.HOUR_OF_DAY, start.get(Calendar.HOUR_OF_DAY));
+                    day.set(Calendar.MINUTE, start.get(Calendar.MINUTE));
+                    day.set(Calendar.SECOND, start.get(Calendar.SECOND));
+
+                    e.startMillis = day.getTimeInMillis();
+                    e.endMillis = e.startMillis + e.durationMillis;
+                } break;
+            }
+
+            if(e.startMillis >= dayStartMillis+1000*60*60*24 || e.endMillis < dayStartMillis) {
+            }
+            else if(e.isAllDay) {
+                allDayEvents.add(e);
+            }
+            else {
+                eventsForDay.add(e);
+            }
+        }
     }
 
 

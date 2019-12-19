@@ -5,18 +5,23 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class TasksFragment extends Fragment implements UpdatableUi {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class EventListFragment extends Fragment implements UpdatableUi {
     private MainActivity a;
     private View v;
 
-    TaskItemAdapter taskAdapter;
+    EventItemAdapter eventAdapter;
 
-    public TasksFragment() {}
+    public EventListFragment() {}
 
     @Override
     public void onAttach(Context context) {
@@ -28,14 +33,14 @@ public class TasksFragment extends Fragment implements UpdatableUi {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         v = inflater.inflate(R.layout.fragment_list, container, false);
 
-        a.findViewById(R.id.date_button).setVisibility(View.GONE);
+        a.findViewById(R.id.date_button).setVisibility(View.VISIBLE);
         a.b.show();
-        a.b.setOnClickListener(v -> a.createTask());
+        a.b.setOnClickListener(v -> a.createEvent());
 
-        taskAdapter = new TaskItemAdapter(a);
+        eventAdapter = new EventItemAdapter(a);
 
         RecyclerView list = v.findViewById(R.id.list);
-        list.setAdapter(taskAdapter);
+        list.setAdapter(eventAdapter);
         list.setLayoutManager(new LinearLayoutManager(a));
 
         updateUi();
@@ -45,6 +50,14 @@ public class TasksFragment extends Fragment implements UpdatableUi {
 
     @Override
     public void updateUi() {
-        taskAdapter.setTasks(a.repo.getTasks());
+        Button dateButton = a.findViewById(R.id.date_button);
+        dateButton.setText(a.dateFormat.format(a.selectedDate.getTime()));
+
+        List<Event> events = new ArrayList<>();
+        long dayStartMillis = a.selectedDate.getTimeInMillis();
+        a.repo.getEventsForDay(dayStartMillis, events, events);
+
+        Collections.sort(events, Event::compareTo);
+        eventAdapter.setEvents(events);
     }
 }
