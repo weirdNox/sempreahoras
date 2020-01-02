@@ -1,13 +1,18 @@
 package com.sempreahoras.app;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import androidx.core.app.AlarmManagerCompat;
 import androidx.fragment.app.Fragment;
 
 import com.ikovac.timepickerwithseconds.MyTimePickerDialog;
@@ -15,6 +20,8 @@ import com.ikovac.timepickerwithseconds.MyTimePickerDialog;
 public class TimerFragment extends Fragment implements UpdatableUi {
     private MainActivity a;
     private View v;
+
+    private Context context;
 
     private Button time;
     private Button startStop;
@@ -28,17 +35,23 @@ public class TimerFragment extends Fragment implements UpdatableUi {
 
     private CountDownTimer timer;
 
+    private AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
+
     public TimerFragment() {}
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         a = ((MainActivity) getActivity());
+        this.context = context;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         v = inflater.inflate(R.layout.fragment_timer_stopwatch, container, false);
+
+        alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
         a.findViewById(R.id.date_button).setVisibility(View.GONE);
         a.b.hide();
@@ -100,6 +113,12 @@ public class TimerFragment extends Fragment implements UpdatableUi {
     }
 
     private void startTimer() {
+        Intent intent = new Intent(context, AlarmReceiver.class);
+        intent.putExtra(AlarmReceiver.INTENT_TYPE, AlarmReceiver.TYPE_TIMER);
+        intent.setFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+        pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime()+remainingMillis, pendingIntent);
+
         timer = new CountDownTimer(remainingMillis, 100) {
             @Override
             public void onTick(long remaining) {
@@ -116,6 +135,8 @@ public class TimerFragment extends Fragment implements UpdatableUi {
     }
 
     private void cancelTimer() {
+        alarmManager.cancel(pendingIntent);
+
         if(timer != null) {
             timer.cancel();
             timer = null;

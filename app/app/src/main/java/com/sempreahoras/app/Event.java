@@ -36,6 +36,8 @@ public class Event {
     // be the end of its final repeat
     long endMillis;
 
+    long notificationMillis = -1;
+
     long lastEdit = Calendar.getInstance().getTimeInMillis();
 
     int color = Color.rgb(252, 186, 3);
