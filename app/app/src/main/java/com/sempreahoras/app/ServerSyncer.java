@@ -55,14 +55,16 @@ public class ServerSyncer {
 
     void fetchNewData(SimpleCallback post) {
         if(isNetworkAvailable(context)) {
-            StringRequest request = new StringRequest(Request.Method.GET, getUrl("get?userId=" + MainActivity.userId + "&since=" + prefs.getLong(lastEditTag, 0)),
+            StringRequest request = new StringRequest(Request.Method.GET,
+                                                      getUrl("get?userId=" + MainActivity.userId +
+                                                             "&since=" + prefs.getLong(lastEditTag+MainActivity.userId, 0)),
                     response -> {
                         try {
                             JsonNode root = mapper.readTree(response);
                             Event[] events = mapper.treeToValue(root.get("events"), Event[].class);
                             Task[] tasks = mapper.treeToValue(root.get("tasks"), Task[].class);
 
-                            long newLastEdit = prefs.getLong(lastEditTag, 0);
+                            long newLastEdit = prefs.getLong(lastEditTag+MainActivity.userId, 0);
 
                             if(events.length > 0) {
                                 for (Event event : events) {
@@ -83,7 +85,7 @@ public class ServerSyncer {
                             }
 
                             SharedPreferences.Editor editor = prefs.edit();
-                            editor.putLong(lastEditTag, newLastEdit);
+                            editor.putLong(lastEditTag+MainActivity.userId, newLastEdit);
                             editor.apply();
 
                             post.run(null);
