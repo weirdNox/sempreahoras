@@ -4,6 +4,7 @@ import android.content.Context;
 
 import androidx.room.Dao;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -88,6 +89,13 @@ public class Repository {
                 eventsForDay.add(e);
             }
         }
+    }
+
+    boolean hasEvents(long dayStartMillis) {
+        List<Event> e = new ArrayList<>();
+        List<Event> ed = new ArrayList<>();
+        getEventsForDay(dayStartMillis, e, ed);
+        return e.size() > 0 || ed.size() > 0;
     }
 
     List<Event> getEventsForNotif() {

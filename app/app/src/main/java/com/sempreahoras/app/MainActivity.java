@@ -3,6 +3,7 @@ package com.sempreahoras.app;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private final int DAY_LIST = -1;
     private final int DAY = 0;
     private final int WEEK = 1;
+    private final int MONTH = 2;
     private final int TASKS = 3;
     private final int TIMER = 4;
     private final int STOPWATCH = 5;
@@ -75,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         sub.add(0, DAY_LIST, Menu.NONE, "List");
         sub.add(0, DAY, Menu.NONE, "Day");
         sub.add(0, WEEK, Menu.NONE, "Week");
+        sub.add(0, MONTH, Menu.NONE, "Month");
 
         sub = menu.addSubMenu("Utilities");
         sub.add(0, TASKS, Menu.NONE, "Tasks");
@@ -129,6 +132,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             case WEEK: {
                 getSupportFragmentManager().beginTransaction().replace(R.id.container, new DayFragment(7)).commit();
+            } break;
+
+            case MONTH: {
+                getSupportFragmentManager().beginTransaction().replace(R.id.container, new MonthFragment()).commit();
             } break;
 
             case TASKS: {
@@ -211,6 +218,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Intent intent = new Intent(this, TaskDetailsActivity.class);
         intent.putExtra(TaskDetailsActivity.TASK_ID, t.id);
         startActivity(intent);
+    }
+
+    void viewWeek() {
+        getSupportFragmentManager().beginTransaction().replace(R.id.container, new DayFragment(7)).commit();
     }
 
     @Override
