@@ -60,7 +60,7 @@ public class Event {
         lastEdit = Calendar.getInstance().getTimeInMillis();
 
         if(id == 0) {
-        	statement = dbConn.prepareStatement("INSERT OR ABORT INTO events (" +
+        	statement = dbConn.prepareStatement("INSERT INTO events (" +
                                                 "Title," +
                                                 "Description," +
                                                 "StartMillis," +
@@ -74,7 +74,8 @@ public class Event {
                                                 "NotifMinutes," +
                                                 "Location," +
                                                 "UserId" +
-                                                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+                                                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",
+                                                Statement.RETURN_GENERATED_KEYS);
             statement.setString(13, userId);
         }
         else {

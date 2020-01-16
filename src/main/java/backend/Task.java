@@ -41,13 +41,14 @@ public class Task {
         lastEdit = Calendar.getInstance().getTimeInMillis();
 
         if(id == 0) {
-        	statement = dbConn.prepareStatement("INSERT OR ABORT INTO tasks (" +
+        	statement = dbConn.prepareStatement("INSERT INTO tasks (" +
                                                 "Title," +
                                                 "Description," +
                                                 "Color," +
                                                 "LastEdit," +
                                                 "UserId" +
-                                                ") VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+                                                ") VALUES (?,?,?,?,?) ON CONFLICT DO NOTHING",
+                                                Statement.RETURN_GENERATED_KEYS);
             statement.setString(5, userId);
         }
         else {

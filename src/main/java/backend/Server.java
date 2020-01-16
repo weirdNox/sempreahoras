@@ -50,17 +50,17 @@ public class Server {
 
 	        Statement statement = dbConn.createStatement();
 	        statement.addBatch("CREATE TABLE IF NOT EXISTS events (" +
-                               "Id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                               "Id SERIAL PRIMARY KEY," +
                                "UserId TEXT NOT NULL," +
                                "Title TEXT NOT NULL," +
                                "Description TEXT NOT NULL," +
-                               "StartMillis INTEGER NOT NULL," +
-                               "DurationMillis INTEGER NOT NULL," +
+                               "StartMillis BIGINT NOT NULL," +
+                               "DurationMillis BIGINT NOT NULL," +
                                "IsAllDay BOOLEAN NOT NULL," +
                                "RepeatType INTEGER NOT NULL," +
                                "RepeatCount INTEGER NOT NULL," +
-                               "EndMillis INTEGER NOT NULL," +
-                               "LastEdit INTEGER NOT NULL," +
+                               "EndMillis BIGINT NOT NULL," +
+                               "LastEdit BIGINT NOT NULL," +
                                "Color INTEGER NOT NULL," +
                                "NotifMinutes INTEGER NOT NULL," +
                                "Location TEXT NOT NULL," +
@@ -68,12 +68,12 @@ public class Server {
                                ")");
 
 	        statement.addBatch("CREATE TABLE IF NOT EXISTS tasks (" +
-                               "Id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                               "Id SERIAL PRIMARY KEY," +
                                "UserId TEXT NOT NULL," +
                                "Title TEXT NOT NULL," +
                                "Description TEXT NOT NULL," +
                                "Color INTEGER NOT NULL," +
-                               "LastEdit INTEGER NOT NULL," +
+                               "LastEdit BIGINT NOT NULL," +
                                "Deleted BOOLEAN DEFAULT false" +
                                ")");
 
@@ -121,19 +121,19 @@ public class Server {
                         }
 
                     	if(since > 0) {
-                            eventStatement = dbConn.prepareStatement("SELECT * FROM events WHERE UserId == ? AND LastEdit > ?");
+                            eventStatement = dbConn.prepareStatement("SELECT * FROM events WHERE UserId = ? AND LastEdit > ?");
                             eventStatement.setString(1, parameters.get("userId"));
                             eventStatement.setLong(2, since);
 
-                            taskStatement = dbConn.prepareStatement("SELECT * FROM tasks WHERE UserId == ? AND LastEdit > ?");
+                            taskStatement = dbConn.prepareStatement("SELECT * FROM tasks WHERE UserId = ? AND LastEdit > ?");
                             taskStatement.setString(1, parameters.get("userId"));
                             taskStatement.setLong(2, since);
                     	}
                     	else {
-                            eventStatement = dbConn.prepareStatement("SELECT * FROM events WHERE UserId == ? AND Deleted == false");
+                            eventStatement = dbConn.prepareStatement("SELECT * FROM events WHERE UserId = ? AND Deleted = false");
                             eventStatement.setString(1, parameters.get("userId"));
 
-                            taskStatement = dbConn.prepareStatement("SELECT * FROM tasks WHERE UserId == ? AND Deleted == false");
+                            taskStatement = dbConn.prepareStatement("SELECT * FROM tasks WHERE UserId = ? AND Deleted = false");
                             taskStatement.setString(1, parameters.get("userId"));
                     	}
 
