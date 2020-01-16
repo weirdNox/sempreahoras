@@ -31,7 +31,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 public class Server {
-	final int port = 80;
+	int port = 80;
 	Connection dbConn = null;
 	ObjectMapper mapper;
 
@@ -45,7 +45,7 @@ public class Server {
 
 	void run() {
 		try {
-			String dbUrl = System.getenv("DATABASE_URL");
+			String dbUrl = System.getenv("JDBC_DATABASE_URL");
 			dbConn = DriverManager.getConnection(dbUrl);
 
 	        Statement statement = dbConn.createStatement();
@@ -82,6 +82,11 @@ public class Server {
         catch (SQLException e) {
 			throw new RuntimeException("Could not open database!", e);
 		}
+
+        String herokuPort = System.getenv("PORT");
+        if (herokuPort != null) {
+            port = Integer.parseInt(herokuPort);
+        }
 
 		HttpServer server;
 		try {
