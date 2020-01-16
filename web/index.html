@@ -1,0 +1,166 @@
+<html>
+    <head>
+        <style>
+         /* Box sizing rules */
+         *,
+         *::before,
+         *::after {
+             box-sizing: border-box;
+         }
+
+         /* Remove default padding */
+         ul[class],
+         ol[class] {
+             padding: 0;
+         }
+
+         /* Remove default margin */
+         body,
+         h1,
+         h2,
+         h3,
+         h4,
+         p,
+         ul[class],
+         ol[class],
+         li,
+         figure,
+         figcaption,
+         blockquote,
+         dl,
+         dd {
+             margin: 0;
+         }
+
+         /* Set core body defaults */
+         body {
+             min-height: 100vh;
+             scroll-behavior: smooth;
+             text-rendering: optimizeSpeed;
+             line-height: 1.5;
+         }
+
+         /* Remove list styles on ul, ol elements with a class attribute */
+         ul[class],
+         ol[class] {
+             list-style: none;
+         }
+
+         /* A elements that don't have a class get default styles */
+         a:not([class]) {
+             text-decoration-skip-ink: auto;
+         }
+
+         /* Make images easier to work with */
+         img {
+             max-width: 100%;
+             display: block;
+         }
+
+         /* Natural flow and rhythm in articles by default */
+         article > * + * {
+             margin-top: 1em;
+         }
+
+         /* Inherit fonts for inputs and buttons */
+         input,
+         button,
+         textarea,
+         select {
+             font: inherit;
+         }
+
+         /* Remove all animations and transitions for people that prefer not to see them */
+         @media (prefers-reduced-motion: reduce) {
+             * {
+                 animation-duration: 0.01ms !important;
+                 animation-iteration-count: 1 !important;
+                 transition-duration: 0.01ms !important;
+                 scroll-behavior: auto !important;
+             }
+         }
+
+         * {
+             font-family: "Helvetica",sans;
+         }
+
+         #hero {
+             height: 90vh;
+
+             display: flex;
+             align-items: center;
+             justify-content: center;
+
+             background-color: #d3eacb;
+
+             position: relative;
+             overflow: hidden;
+         }
+
+         #hero #title {
+             width: 100vw;
+             position: absolute;
+             bottom: 70%;
+             font-size: 1.2em;
+         }
+
+         #hero #phone {
+             width: 70vw;
+             height: auto;
+
+             position: absolute;
+             bottom: 0;
+
+             transform: translate(0, 100%) translate(0, -60vh);
+
+             max-width: 500px;
+         }
+
+         #hero h1 {
+             font-family: "Palatino Linotype";
+         }
+
+         #hero h3 {
+             font-family: "Palatino Linotype";
+             position: absolute;
+             left: 50%;
+             transform: translate(-50%, -100%);
+             width: 90vw;
+         }
+
+         #content {
+             text-align: center;
+
+             font-size: 1.3em;
+         }
+
+         #download {
+             padding: 50px;
+             margin: 2em;
+             background-color: #018577;
+             border: none;
+             border-radius: 5px;
+             color: white;
+             padding: 15px 32px;
+             text-align: center;
+             text-decoration: none;
+             display: inline-block;
+         }
+        </style>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <div id="hero" style="text-align: center">
+            <div id="title">
+                <h3>Nunca mais perca uma reunião... chegue</h3>
+                <h1>Sempre a Horas</h1>
+            </div>
+            <img id="phone" src="phone.png"></img>
+        </div>
+        <div id="content">
+            <a href="https://github.com/weirdNox/sempreahoras/releases/latest/download/sempreahoras.apk" id="download">
+                Faça já o download!
+            </a>
+        </div>
+    </body>
+</html>

@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -16,6 +18,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -98,7 +102,7 @@ public class Server {
 
 		server.createContext("/", (t) -> {
 			// NOTE: Catch-all
-			sendResponse(t, 400, "Invalid endpoint");
+			sendFile(t, t.getRequestURI().getPath());
 		});
 
 		server.createContext("/get", (t) -> {
@@ -366,6 +370,33 @@ public class Server {
  		ExecutorService serverExecutor = Executors.newFixedThreadPool(4);
 		server.setExecutor(serverExecutor);
         server.start();
+	}
+	
+	void sendFile(HttpExchange t, String path) {
+        InputStream in = getClass().getResourceAsStream(path.length() == 1 ? "/index.html" : path);
+        if(in == null) {
+        	sendResponse(t, 404, "Not found.");
+        }
+        else {
+    		OutputStream os = t.getResponseBody();
+    		byte[] bytes;
+    		
+			try {
+				bytes = IOUtils.toByteArray(in);
+				if(path.contains("png")) {
+	            	t.getResponseHeaders().add("Content-Type", "image/png");
+	    		}
+	    		else {
+	            	t.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
+	    		}
+
+				t.sendResponseHeaders(200, bytes.length);
+	    		os.write(bytes);
+	    		in.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}	
+        }
 	}
 
 	void sendResponse(HttpExchange t, int code, String response) {
