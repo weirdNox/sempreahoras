@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.nio.charset.StandardCharsets;
 
 public class ServerSyncer {
-    private final String host = "http://10.227.147.247:8080/";
+    private final String host = "https://sempreahoras.herokuapp.com/";
     private final String lastEditTag = "lastEdit";
 
     private RequestQueue queue;
