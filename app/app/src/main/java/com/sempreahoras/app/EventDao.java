@@ -15,6 +15,9 @@ public interface EventDao {
     @Query("SELECT * from event_table WHERE startMillis < :endMillis AND (endMillis >= :startMillis OR endMillis == 0) AND userId == :userId")
     List<Event> getEventsBetweenMillis(long startMillis, long endMillis, String userId);
 
+    @Query("SELECT * from event_table WHERE (endMillis >= :startMillis OR endMillis == 0) AND notifMinutes >= 0")
+    List<Event> getEventsForNotif(long startMillis);
+
     @Query("SELECT * from event_table WHERE id == :id AND userId == :userId LIMIT 1")
     Event getEventById(long id, String userId);
 

@@ -1,5 +1,9 @@
 package com.sempreahoras.app;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 
 import androidx.annotation.NonNull;
@@ -36,7 +40,7 @@ public class Event {
     // be the end of its final repeat
     long endMillis;
 
-    long notificationMillis = -1;
+    long notifMinutes = -1;
 
     long lastEdit = Calendar.getInstance().getTimeInMillis();
 
@@ -77,22 +81,25 @@ public class Event {
     }
 
     void ensureConsistency() {
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis(startMillis);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        startMillis = c.getTimeInMillis();
+
         if(isAllDay) {
-            Calendar c = Calendar.getInstance();
-            c.setTimeInMillis(startMillis);
             c.set(Calendar.HOUR_OF_DAY, 0);
             c.set(Calendar.MINUTE, 0);
-            c.set(Calendar.SECOND, 0);
-            c.set(Calendar.MILLISECOND, 0);
             startMillis = c.getTimeInMillis();
 
-            c.setTimeInMillis(startMillis + durationMillis);
-            c.set(Calendar.HOUR_OF_DAY, 23);
-            c.set(Calendar.MINUTE, 59);
-            c.set(Calendar.SECOND, 59);
-            c.set(Calendar.MILLISECOND, 999);
+            Calendar c2 = Calendar.getInstance();
+            c2.setTimeInMillis(startMillis + durationMillis);
+            c2.set(Calendar.HOUR_OF_DAY, 23);
+            c2.set(Calendar.MINUTE, 59);
+            c2.set(Calendar.SECOND, 59);
+            c2.set(Calendar.MILLISECOND, 999);
 
-            durationMillis = (Math.round(Math.ceil((c.getTimeInMillis()-startMillis)/((float)24*60*60*1000)) * 24*60*60*1000)) - 1;
+            durationMillis = (Math.round(Math.ceil((c2.getTimeInMillis()-startMillis)/((float)24*60*60*1000)) * 24*60*60*1000)) - 1;
         }
 
         if(repeatType == repeatNone) {
@@ -102,23 +109,17 @@ public class Event {
             endMillis = 0;
         }
         else if(repeatType == repeatWeekly) {
-            Calendar c = Calendar.getInstance();
-            c.setTimeInMillis(startMillis);
             c.set(Calendar.DAY_OF_YEAR, c.get(Calendar.DAY_OF_YEAR) + 7*(repeatCount-1));
 
             endMillis = c.getTimeInMillis() + durationMillis;
         }
         else if(repeatType == repeatMonthly) {
-            Calendar c = Calendar.getInstance();
-            c.setTimeInMillis(startMillis);
             c.set(Calendar.MONTH, c.get(Calendar.MONTH) + (repeatCount-1));
 
             endMillis = c.getTimeInMillis() + durationMillis;
         }
         else {
             assert(repeatType == repeatYearly);
-            Calendar c = Calendar.getInstance();
-            c.setTimeInMillis(startMillis);
             c.set(Calendar.YEAR, c.get(Calendar.YEAR) + (repeatCount-1));
 
             endMillis = c.getTimeInMillis() + durationMillis;
@@ -145,11 +146,93 @@ public class Event {
         }
     }
 
+    long getNextStart(long now) {
+        switch(repeatType) {
+            case Event.repeatWeekly: {
+                Calendar start = Calendar.getInstance();
+                start.setTimeInMillis(startMillis);
+
+                Calendar day = Calendar.getInstance();
+                day.setTimeInMillis(now);
+
+                int daysDiff = start.get(Calendar.DAY_OF_WEEK) - day.get(Calendar.DAY_OF_WEEK);
+                if(daysDiff < 0) {
+                    daysDiff += 7;
+                }
+
+                day.set(Calendar.DAY_OF_YEAR, day.get(Calendar.DAY_OF_YEAR) + daysDiff);
+                day.set(Calendar.HOUR_OF_DAY, start.get(Calendar.HOUR_OF_DAY));
+                day.set(Calendar.MINUTE, start.get(Calendar.MINUTE));
+                day.set(Calendar.SECOND, start.get(Calendar.SECOND));
+
+                return day.getTimeInMillis();
+            }
+
+            case Event.repeatMonthly: {
+                Calendar start = Calendar.getInstance();
+                start.setTimeInMillis(startMillis);
+
+                Calendar day = Calendar.getInstance();
+                day.setTimeInMillis(now);
+                day.set(Calendar.DAY_OF_MONTH, start.get(Calendar.DAY_OF_MONTH));
+                day.set(Calendar.HOUR_OF_DAY, start.get(Calendar.HOUR_OF_DAY));
+                day.set(Calendar.MINUTE, start.get(Calendar.MINUTE));
+                day.set(Calendar.SECOND, start.get(Calendar.SECOND));
+
+                if(day.getTimeInMillis() < now) {
+                    day.set(Calendar.MONTH, day.get(Calendar.MONTH) + 1);
+                }
+
+                return day.getTimeInMillis();
+            }
+
+            case Event.repeatYearly: {
+                Calendar start = Calendar.getInstance();
+                start.setTimeInMillis(startMillis);
+
+                Calendar day = Calendar.getInstance();
+                day.setTimeInMillis(now);
+                day.set(Calendar.MONTH, start.get(Calendar.MONTH));
+                day.set(Calendar.DAY_OF_MONTH, start.get(Calendar.DAY_OF_MONTH));
+                day.set(Calendar.HOUR_OF_DAY, start.get(Calendar.HOUR_OF_DAY));
+                day.set(Calendar.MINUTE, start.get(Calendar.MINUTE));
+                day.set(Calendar.SECOND, start.get(Calendar.SECOND));
+
+                if(day.getTimeInMillis() < now) {
+                    day.set(Calendar.YEAR, day.get(Calendar.YEAR) + 1);
+                }
+
+                return day.getTimeInMillis();
+            }
+
+            default: {
+                return startMillis;
+            }
+        }
+    }
+
     boolean isGreaterThan(Event that) {
         return this.compareTo(that) > 0;
     }
 
     boolean isLessThan(Event that) {
         return this.compareTo(that) < 0;
+    }
+
+    void schedule(Context context, long now) {
+        AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+
+        long next = getNextStart(now);
+
+        if(next > now && next <= endMillis) {
+            Intent intent = new Intent(context, AlarmReceiver.class);
+            intent.putExtra(AlarmReceiver.INTENT_TYPE, AlarmReceiver.TYPE_EVENT);
+            intent.putExtra(AlarmReceiver.EVENT_ID, id);
+            intent.putExtra(AlarmReceiver.EVENT_TITLE, title);
+            intent.putExtra(AlarmReceiver.EVENT_START, next);
+            intent.setFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, (int)id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next-notifMinutes*60*1000, pendingIntent);
+        }
     }
 }

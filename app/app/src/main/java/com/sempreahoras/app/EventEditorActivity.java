@@ -17,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.android.gms.common.util.NumberUtils;
 import com.pes.androidmaterialcolorpickerdialog.ColorPicker;
 
 import java.text.DateFormat;
@@ -83,6 +84,7 @@ public class EventEditorActivity extends AppCompatActivity {
         EditText location = findViewById(R.id.location);
         EditText desc = findViewById(R.id.desc);
         CheckBox allDay = findViewById(R.id.allDay);
+        EditText notifMinutes = findViewById(R.id.notifMinutes);
 
         save.setOnClickListener(v -> {
             e.title = title.getText().toString();
@@ -105,6 +107,12 @@ public class EventEditorActivity extends AppCompatActivity {
                 e.repeatCount = 0;
             }
 
+            try {
+                e.notifMinutes = Long.parseLong(notifMinutes.getText().toString());
+            }
+            catch(Exception ex) {
+                e.notifMinutes = -1;
+            }
             e.location = location.getText().toString();
             e.description = desc.getText().toString();
 
@@ -223,6 +231,9 @@ public class EventEditorActivity extends AppCompatActivity {
             updateUi();
         });
 
+        if(e.notifMinutes >= 0) {
+            notifMinutes.setText(String.valueOf(e.notifMinutes));
+        }
         location.setText(e.location);
         desc.setText(e.description);
 

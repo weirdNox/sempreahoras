@@ -27,6 +27,9 @@ public class Event {
                  (( 252 & 0xff) << 16) |
                  (( 186 & 0xff) <<  8) |
                  ((   3 & 0xff) <<  0));
+
+    long notifMinutes = -1;
+
     String location = "";
 
     boolean deleted = false;
@@ -46,6 +49,7 @@ public class Event {
 		endMillis      = set.getLong("EndMillis");
 		lastEdit       = set.getLong("LastEdit");
 		color          = set.getInt("Color");
+		notifMinutes   = set.getLong("NotifMinutes");
 		location       = set.getString("Location");
 		deleted        = set.getBoolean("Deleted");
     }
@@ -67,10 +71,11 @@ public class Event {
                                                 "EndMillis," +
                                                 "LastEdit," +
                                                 "Color," +
+                                                "NotifMinutes," +
                                                 "Location," +
                                                 "UserId" +
-                                                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
-            statement.setString(12, userId);
+                                                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+            statement.setString(13, userId);
         }
         else {
         	statement = dbConn.prepareStatement("UPDATE events SET (" +
@@ -84,13 +89,14 @@ public class Event {
                                                 "EndMillis," +
                                                 "LastEdit," +
                                                 "Color," +
+                                                "NotifMinutes," +
                                                 "Location," +
                                                 "Deleted" +
-                                                ") = (?,?,?,?,?,?,?,?,?,?,?,?) " +
+                                                ") = (?,?,?,?,?,?,?,?,?,?,?,?,?) " +
                                                 "WHERE Id = ? AND UserId = ?", Statement.RETURN_GENERATED_KEYS);
-            statement.setBoolean(12, deleted);
-            statement.setLong(13, id);
-            statement.setString(14, userId);
+            statement.setBoolean(13, deleted);
+            statement.setLong(14, id);
+            statement.setString(15, userId);
         }
 
         statement.setString(1, title);
@@ -103,7 +109,8 @@ public class Event {
         statement.setLong(8, endMillis);
         statement.setLong(9, lastEdit);
         statement.setInt(10, color);
-        statement.setString(11, location);
+        statement.setLong(11, notifMinutes);
+        statement.setString(12, location);
 
 		return statement;
     }

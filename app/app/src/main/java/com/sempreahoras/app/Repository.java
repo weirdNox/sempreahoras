@@ -90,6 +90,9 @@ public class Repository {
         }
     }
 
+    List<Event> getEventsForNotif() {
+        return eventDao.getEventsForNotif(Calendar.getInstance().getTimeInMillis());
+    }
 
     Event getEventById(long id) {
         return eventDao.getEventById(id, MainActivity.userId);
@@ -102,6 +105,7 @@ public class Repository {
         else {
             e.ensureConsistency();
             eventDao.insert(e);
+            e.schedule(App.context, Calendar.getInstance().getTimeInMillis());
         }
     }
 

@@ -17,12 +17,19 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Calendar;
 
 public class AlarmReceiver extends BroadcastReceiver {
     static final String INTENT_TYPE = "type";
 
     static final int TYPE_TIMER = 0;
+    static final int TYPE_EVENT = 1;
     static final int TYPE_CANCEL = 999;
+
+    static final String EVENT_ID = "eid";
+    static final String EVENT_TITLE = "et";
+    static final String EVENT_START = "est";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -66,7 +73,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                 cancelIntent.putExtra(INTENT_TYPE, TYPE_CANCEL);
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, cancelIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(context, App.CHANNEL_ID)
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(context, App.CHANNEL1_ID)
                         .setContentTitle("Timer finished!")
                         .setContentText("The timer has expired.")
                         .setSmallIcon(R.drawable.ic_alarm_black_24dp)
@@ -76,6 +83,32 @@ public class AlarmReceiver extends BroadcastReceiver {
 
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
                 notificationManager.notify(12398981, builder.build());
+            } break;
+
+            case TYPE_EVENT: {
+                String title = intent.getStringExtra(EVENT_TITLE);
+                long start = intent.getLongExtra(EVENT_START, -1);
+                if(title != null && start >= 0) {
+                    long id = intent.getLongExtra(EVENT_ID, -1);
+                    Calendar c = Calendar.getInstance();
+                    c.setTimeInMillis(start);
+
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(context, App.CHANNEL2_ID)
+                            .setContentTitle("Reminder: " + (title.isEmpty() ? "Event" : title))
+                            .setContentText(DateFormat.getDateTimeInstance().format(c.getTime()))
+                            .setSmallIcon(R.drawable.ic_alarm_black_24dp)
+                            .setPriority(NotificationCompat.PRIORITY_MAX)
+                            .setAutoCancel(true);
+
+                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+                    notificationManager.notify((int)id, builder.build());
+
+                    if(id >= 0) {
+                        Repository repo = new Repository(context);
+                        Event event = repo.getEventById(id);
+                        event.schedule(context, start+1);
+                    }
+                }
             } break;
 
             case TYPE_CANCEL: {

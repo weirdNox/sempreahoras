@@ -61,6 +61,7 @@ public class Server {
                                "EndMillis INTEGER NOT NULL," +
                                "LastEdit INTEGER NOT NULL," +
                                "Color INTEGER NOT NULL," +
+                               "NotifMinutes INTEGER NOT NULL," +
                                "Location TEXT NOT NULL," +
                                "Deleted BOOLEAN DEFAULT false" +
                                ")");
