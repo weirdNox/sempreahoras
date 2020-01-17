@@ -134,10 +134,15 @@ public class EventsMonthView extends View implements GestureDetector.OnGestureLi
 
         if(hasEvents != null) {
             int weekIdx = 0;
+
             int weekDay = monthFirstWeekDay;
+            int weekDayIdxRelative = weekDay - firstDayOfWeek;
+            if(weekDayIdxRelative < 0) {
+                weekDayIdxRelative += 7;
+            }
 
             for(int idx = 0; idx < numberOfDays; ++idx) {
-                RectF rect = getDayRect(weekIdx, weekDay);
+                RectF rect = getDayRect(weekIdx, weekDayIdxRelative);
 
                 if(hasEvents[idx]) {
                     paint.setStyle(Paint.Style.FILL);
@@ -165,6 +170,11 @@ public class EventsMonthView extends View implements GestureDetector.OnGestureLi
                 ++weekDay;
                 if(weekDay > 7) {
                     weekDay -= 7;
+                }
+
+                ++weekDayIdxRelative;
+                if(weekDayIdxRelative >= 7) {
+                    weekDayIdxRelative -= 7;
                     weekIdx++;
                 }
             }
@@ -173,11 +183,7 @@ public class EventsMonthView extends View implements GestureDetector.OnGestureLi
 
     RectF getDayRect(int weekIdx, int weekDay) {
         float top = weekIdx*dayHeight;
-        int weekDayIdxRelative = weekDay - firstDayOfWeek;
-        if(weekDayIdxRelative < 0) {
-            weekDayIdxRelative += 7;
-        }
-        float left = weekDayIdxRelative*columWidth;
+        float left = weekDay*columWidth;
         return new RectF(left, top, left+columWidth, top+dayHeight);
     }
 
