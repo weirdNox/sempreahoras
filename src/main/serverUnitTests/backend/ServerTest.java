@@ -38,6 +38,7 @@ class ServerTest {
 
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
+	    // Iniciamos servidor
 		Server server = new Server();
 		server.run();
 	}
@@ -69,6 +70,7 @@ class ServerTest {
 	    } 
 	} 
 	
+	// Serve para inicializar evento com informacao generica
 	void eventoGenerico(Event event) {
 		event.id = 0;
 		event.isAllDay = false;
@@ -87,6 +89,7 @@ class ServerTest {
 		event.notifMinutes = 40;
 	}
 	
+	// Serve para inicializar task com informacao generica
 	void taskGenerico(Task event) {
 		event.id = 0;
 		event.color = 10;
@@ -97,10 +100,18 @@ class ServerTest {
 		event.userId = "UNIT_TESTS_SERVIDOR";
 	}
 	
+	/* Funcao que enviara httprequest ao servidor. 
+	String context - Sera adicionado ao fim do url para ceder ao context respetivo no servidor http
+	String method - Define method entre "POST" ou "GET"
+	ObjectNode root - Objecto formato json para enviar
+	ResponseCodee responsecode - Guarda valor resposta do servidor
+	
+	*/
 	String httpRequest(String context, String method, ObjectNode root, ResponseCode responsecode) {
 		String url = "";
 		InetAddress inetAddress;
-		try {
+		// Metemos em url o address do host local
+		try { 
 			inetAddress = InetAddress.getLocalHost();
 			url = "http://" + inetAddress.getHostAddress() + ":8080/";
 		} catch (UnknownHostException e) {
@@ -122,11 +133,14 @@ class ServerTest {
 	        	httpClient.setDoOutput(true);
 		        
 		        DataOutputStream wr = new DataOutputStream(httpClient.getOutputStream());
-		        if (root.has("ERRO")) {
+		        
+		        // Assim enviara so a mensagem string e nao a mensagem formato json
+		        if (root.has("ERRO")) { 
 		        	wr.writeBytes(root.get("ERRO").textValue());
 			        wr.flush();
 		        }
-		        else {
+		        // Envia mensagem formato json
+		        else { 
 		        	wr.writeBytes(root.toString());
 			        wr.flush();
 		        }
@@ -144,7 +158,8 @@ class ServerTest {
 	        String line;
 	        response = new StringBuilder();
 	
-	        while ((line = in.readLine()) != null) {
+	        /* Mete em response a resposta */
+	        while ((line = in.readLine()) != null) { 
 	            response.append(line);
 	        }
 	        
@@ -156,7 +171,9 @@ class ServerTest {
         
         return response.toString();
 	}
-
+    
+    /* Adicionamos um evento, verificamos na db se foi adicionado, depois editamos esse
+    evento e verificamos se foi alterado. */
 	@Test
 	void insertEvent_AddingAndEditingEvents_PositiveResults() {
 		
@@ -190,18 +207,21 @@ class ServerTest {
 		
 		ObjectNode root = mapper.valueToTree(event);
 		
-        String context = "insertEvent";
+        String context = "insertEvent"; 
         String response;
         ResponseCode responsecode = new ResponseCode(0);
         
-		try {
+		try { 
+		    /* Enviamos pedido http para adicionar evento */
 			response = httpRequest(context, "POST", root, responsecode);
 	        
+	        /* Guardamos a resposta em resp na classe Event */
 	        resp = mapper.readValue(response, Event.class);
 	        
 	        event.id = resp.id;
 	        event.lastEdit = resp.lastEdit;
 	        
+	        /* Vamos verificar o evento criado */
 	        statement = dbConn.prepareStatement("SELECT * FROM events WHERE Id = ?");
 	        statement.setLong(1, event.id);
 	        result = statement.executeQuery();
@@ -209,6 +229,7 @@ class ServerTest {
             	eventdb = new Event(result);
             }
 	        
+	        /* Verificamos se a resposta, o evento criado db e o evento original sao todos iguais */
 	        assertEquals(mapper.writeValueAsString(event), mapper.writeValueAsString(eventdb));
 	        assertEquals(mapper.writeValueAsString(event), mapper.writeValueAsString(resp));
 	        assertEquals(responsecode.valor, 200);
@@ -218,6 +239,7 @@ class ServerTest {
 	        
 	        root = mapper.valueToTree(event);
 	        
+	        /* Mandamos pedido para alterar evento */
 	        response = httpRequest(context, "POST", root, responsecode);
         	
         	resp = mapper.readValue(response.toString(), Event.class);
@@ -231,6 +253,7 @@ class ServerTest {
             	eventdb = new Event(result);
             }
 	        
+	        /* Verificamos novamente se esta tudo igual */
 	        assertEquals(mapper.writeValueAsString(event), mapper.writeValueAsString(eventdb));
         	assertEquals(mapper.writeValueAsString(event), mapper.writeValueAsString(resp));
         	assertEquals(responsecode.valor, 200);
@@ -241,7 +264,8 @@ class ServerTest {
 			e.printStackTrace();
 		}
 	}
-
+    
+    /* Testamos casos de mensagens que devem dar respostas erro no servidor */
 	@Test
 	void insertEvent_AddingAndEditingEvents_NegativeResults(){
 		
@@ -316,7 +340,9 @@ class ServerTest {
 		assertEquals(responsecode.valor, 500);
 		
 	}
-
+    
+    /* Criamos um evento na db, e de seguida enviamos pedido ao servidor para apagar
+    esse evento, e verificamos o resultado. */
 	@Test
 	void deleteEvent_DeletingEvents_PositiveResults() {
 
@@ -377,6 +403,7 @@ class ServerTest {
 		}
 	}
 	
+	/* Testamos casos de mensagens que devem dar respostas erro no servidor */
 	@Test
 	void deleteEvent_DeletingEvents_NegativeResults(){
 		ObjectMapper mapper;
@@ -436,6 +463,8 @@ class ServerTest {
 		assertEquals(responsecode.valor, 405);
 	}
 	
+	/* Enviamos pedido para adicionar task, verificamos na db se foi adicionado, 
+	depois enviamos pedido para editar task, e verificamos na db se foi alterado*/
 	@Test
 	void insertTask_AddingAndEditingTasks_PositiveResults() {
 		
@@ -523,6 +552,7 @@ class ServerTest {
 		}
 	}
 	
+	/* Testamos casos de mensagens que devem dar respostas erro no servidor */
 	@Test
 	void insertTask_AddingAndEditingTasks_NegativeResults(){
 		ObjectMapper mapper;
@@ -572,7 +602,9 @@ class ServerTest {
 		assertEquals(response, "Could not update task");
 		assertEquals(responsecode.valor, 500);
 	}
-
+    
+    /* Criamos na db uma task, depois enviamos pedido ao servidor para apagar essa task
+    e depois verificamos na db o resultado*/
 	@Test
 	void deleteTask_DeletingTasks_PositiveResults() {
 
@@ -634,6 +666,7 @@ class ServerTest {
 		}
 	}
 	
+	/* Testamos casos de mensagens que devem dar respostas erro no servidor */
 	@Test
 	void deleteTask_DeletingTasks_NegativeResults(){
 		ObjectMapper mapper;
@@ -693,6 +726,10 @@ class ServerTest {
 		assertEquals(responsecode.valor, 405);
 	}
 
+    /* Criamos na db varios events e tasks, enviamos um pedido get ao servidor
+    e verificamos se envia como resposta todos os eventos e tasks criados.
+    De seguida fazemos um update num evento e numa task, fazemos um pedido
+    get para obter apenas o evento e task updated e verificamos o resultado*/
 	@Test
 	void get_GetUserEventsAndTasks_PositiveResults(){
 
@@ -834,6 +871,7 @@ class ServerTest {
 		}
 	}
 	
+	/* Testamos casos de mensagens que devem dar respostas erro no servidor */
 	@Test
 	void get_GetUserEventsAndTasks_NegativeResults(){
 		ObjectMapper mapper;
