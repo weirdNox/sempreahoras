@@ -171,6 +171,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         moveTaskToBack(true);
     }
 
+    /**
+     * Display date picker dialog to user, in order to change the date.
+     * @param v ignored (needed for button callback)
+     */
     public void changeDate(View v) {
         new DatePickerDialog(this, selectedDateChangeListener,
                              selectedDate.get(Calendar.YEAR),
@@ -178,6 +182,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                              selectedDate.get(Calendar.DAY_OF_MONTH)).show();
     }
 
+    /**
+     * Callback function for the date picker that sets the date
+     */
     DatePickerDialog.OnDateSetListener selectedDateChangeListener = (view, year, monthOfYear, dayOfMonth) -> {
         selectedDate.set(Calendar.YEAR, year);
         selectedDate.set(Calendar.MONTH, monthOfYear);
@@ -186,6 +193,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         updateUi();
     };
 
+    /**
+     * Update the UI by updating the current foreground fragment.
+     * Also removes time from the date variable (this only needs to specify a date, not a time)
+     */
     void updateUi() {
         selectedDate.set(Calendar.HOUR_OF_DAY, 0);
         selectedDate.set(Calendar.MINUTE, 0);
@@ -198,28 +209,45 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    /**
+     * Goes to the activity of editing events in order to insert a new one
+     */
     void createEvent() {
         Intent intent = new Intent(this, EventEditorActivity.class);
         startActivity(intent);
     }
 
+    /**
+     * Goes to the activity of viewing events
+     * @param e event to be viewed
+     */
     void viewEvent(Event e) {
         Intent intent = new Intent(this, EventDetailsActivity.class);
         intent.putExtra(EventDetailsActivity.EVENT_ID, e.id);
         startActivity(intent);
     }
 
+    /**
+     * Shows the activity of editing a task in order to insert a new one
+     */
     void createTask() {
         Intent intent = new Intent(this, TaskEditorActivity.class);
         startActivity(intent);
     }
 
+    /**
+     * Shows the activity of viewing tasks details
+     * @param t task to be viewed
+     */
     void viewTask(Task t) {
         Intent intent = new Intent(this, TaskDetailsActivity.class);
         intent.putExtra(TaskDetailsActivity.TASK_ID, t.id);
         startActivity(intent);
     }
 
+    /**
+     * Changes the foreground fragment to show the week
+     */
     void viewWeek() {
         getSupportFragmentManager().beginTransaction().replace(R.id.container, new DayFragment(7)).commit();
     }
@@ -230,6 +258,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         updateUi();
     }
 
+    /**
+     * Data synchronizer
+     * Should be called periodically in order to fetch data from the server
+     * May be called when the user wants to force an update
+     */
     Runnable fetchNewData = () -> {
         syncer.fetchNewData(error -> {
             if(error == null) {

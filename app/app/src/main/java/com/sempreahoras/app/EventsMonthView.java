@@ -120,6 +120,9 @@ public class EventsMonthView extends View implements GestureDetector.OnGestureLi
         }
     }
 
+    /**
+     * @return amount that should be translated when rendering
+     */
     float getEffectiveScroll() {
         return -scrollY;
     }
@@ -181,6 +184,12 @@ public class EventsMonthView extends View implements GestureDetector.OnGestureLi
         }
     }
 
+    /**
+     * Create day rectangle
+     * @param weekIdx which week? starting from 0
+     * @param weekDay which day of the week? from 0 to 6
+     * @return the created rectangle
+     */
     RectF getDayRect(int weekIdx, int weekDay) {
         float top = weekIdx*dayHeight;
         float left = weekDay*columWidth;
@@ -279,6 +288,12 @@ public class EventsMonthView extends View implements GestureDetector.OnGestureLi
         }
     }
 
+    /**
+     * Update event data
+     * @param hasEvents list of booleans (one per day) that should be true when there is at least
+     *                  one event in that day
+     * @param firstDayStartMillis millis (since epoch) of the start of the first day of the month
+     */
     public void setEvents(boolean[] hasEvents, long firstDayStartMillis) {
         this.hasEvents = hasEvents;
 

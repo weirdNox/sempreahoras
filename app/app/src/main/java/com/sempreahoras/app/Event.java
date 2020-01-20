@@ -80,6 +80,10 @@ public class Event {
         }
     }
 
+    /**
+     * Ensures consistency between all member variables
+     * Should be called before sending the event to the server and when adding to the local database
+     */
     void ensureConsistency() {
         Calendar c = Calendar.getInstance();
         c.setTimeInMillis(startMillis);
@@ -126,6 +130,11 @@ public class Event {
         }
     }
 
+    /**
+     * Compares events times
+     * @param e other event
+     * @return -1 if this event should be first; 0 when tied, and 1 otherwise
+     */
     int compareTo(Event e) {
         if(this.startMillis < e.startMillis) {
             return -1;
@@ -146,6 +155,11 @@ public class Event {
         }
     }
 
+    /**
+     * Get next time the event starts - useful for repeating events
+     * @param now in millis since epoch, establishes when to start searching for next
+     * @return the time in millis since epoch
+     */
     long getNextStart(long now) {
         switch(repeatType) {
             case Event.repeatWeekly: {
@@ -211,28 +225,29 @@ public class Event {
         }
     }
 
-    boolean isGreaterThan(Event that) {
-        return this.compareTo(that) > 0;
-    }
-
-    boolean isLessThan(Event that) {
-        return this.compareTo(that) < 0;
-    }
-
+    /**
+     * Schedule event to be notified
+     * @param context app context
+     * @param now millis since epoch
+     */
     void schedule(Context context, long now) {
-        AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        if(notifMinutes >= 0) {
+            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
-        long next = getNextStart(now);
+            long next = getNextStart(now);
 
-        if(next > now && next <= endMillis) {
-            Intent intent = new Intent(context, AlarmReceiver.class);
-            intent.putExtra(AlarmReceiver.INTENT_TYPE, AlarmReceiver.TYPE_EVENT);
-            intent.putExtra(AlarmReceiver.EVENT_ID, id);
-            intent.putExtra(AlarmReceiver.EVENT_TITLE, title);
-            intent.putExtra(AlarmReceiver.EVENT_START, next);
-            intent.setFlags(Intent.FLAG_RECEIVER_FOREGROUND);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, (int)id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next-notifMinutes*60*1000, pendingIntent);
+            if (next > now && next <= endMillis) {
+                Intent intent = new Intent(context, AlarmReceiver.class);
+                intent.putExtra(AlarmReceiver.INTENT_TYPE, AlarmReceiver.TYPE_EVENT);
+                intent.putExtra(AlarmReceiver.EVENT_ID, id);
+                intent.putExtra(AlarmReceiver.EVENT_TITLE, title);
+                intent.putExtra(AlarmReceiver.EVENT_START, next);
+                intent.putExtra(AlarmReceiver.EVENT_NOTIFMIN, notifMinutes);
+                intent.putExtra(AlarmReceiver.EVENT_NOW, now);
+                intent.setFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(context, (int) id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next - notifMinutes * 60 * 1000, pendingIntent);
+            }
         }
     }
 }

@@ -67,9 +67,12 @@ public class MonthFragment extends Fragment implements UpdatableUi {
         return v;
     }
 
+    /**
+     * Updates the UI, by checking consistency, fetching events for the selected dates,
+     * and redrawing the view
+     */
     public void updateUi() {
         if(v != null) {
-            int diff = a.selectedDate.getFirstDayOfWeek() - a.selectedDate.get(Calendar.DAY_OF_WEEK);
             a.selectedDate.set(Calendar.DAY_OF_MONTH, 1);
 
             Button dateButton = a.findViewById(R.id.date_button);
@@ -91,11 +94,19 @@ public class MonthFragment extends Fragment implements UpdatableUi {
         }
     }
 
+    /**
+     * Change to previous or next group of days, depending on velocity
+     * @param velX if positive, goes to the next; else, go to the previous
+     */
     void changeTo(float velX) {
         a.selectedDate.set(Calendar.MONTH, a.selectedDate.get(Calendar.MONTH) + (velX > 0 ? 1 : -1));
         updateUi();
     }
 
+    /**
+     * View a single week
+     * @param weekIdx index of the week to be viewed
+     */
     void viewWeek(int weekIdx) {
         a.selectedDate.setTimeInMillis(a.selectedDate.getTimeInMillis() + 7*24*60*60*1000*(long)weekIdx);
         a.viewWeek();

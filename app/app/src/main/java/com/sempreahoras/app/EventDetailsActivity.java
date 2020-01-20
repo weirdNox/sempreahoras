@@ -86,6 +86,9 @@ public class EventDetailsActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Updates UI by rewriting all elements
+     */
     void updateUi() {
         Event e = repo.getEventById(eventId);
 

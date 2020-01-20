@@ -18,10 +18,22 @@ public class Repository {
         taskDao = db.taskDao();
     }
 
+    /**
+     * Get event between the specified millis (since epoch)
+     * @param startMillis start
+     * @param endMillis end
+     * @return List of events
+     */
     List<Event> getEventsBetweenMillis(long startMillis, long endMillis) {
         return eventDao.getEventsBetweenMillis(startMillis,endMillis, MainActivity.userId);
     }
 
+    /**
+     * get events for a single day
+     * @param dayStartMillis millis of the start of the day
+     * @param eventsForDay List to fill of normal events
+     * @param allDayEvents List to fill of all day events
+     */
     void getEventsForDay(long dayStartMillis, List<Event> eventsForDay, List<Event> allDayEvents) {
         List<Event> events = getEventsBetweenMillis(dayStartMillis, dayStartMillis + (24*60*60*1000));
 
@@ -91,6 +103,11 @@ public class Repository {
         }
     }
 
+    /**
+     * Check if day has any events
+     * @param dayStartMillis millis of the start of the day
+     * @return true if there are events on that day; false otherwise
+     */
     boolean hasEvents(long dayStartMillis) {
         List<Event> e = new ArrayList<>();
         List<Event> ed = new ArrayList<>();
@@ -98,14 +115,27 @@ public class Repository {
         return e.size() > 0 || ed.size() > 0;
     }
 
+    /**
+     * Get events that should be notified
+     * @return events that should be notified
+     */
     List<Event> getEventsForNotif() {
         return eventDao.getEventsForNotif(Calendar.getInstance().getTimeInMillis());
     }
 
+    /**
+     * Get a single event
+     * @param id event id
+     * @return event
+     */
     Event getEventById(long id) {
         return eventDao.getEventById(id, MainActivity.userId);
     }
 
+    /**
+     * insert event into local DB
+     * @param e event
+     */
     void insertEvent(Event e) {
         if(e.deleted) {
             deleteEvent(e.id);
@@ -117,10 +147,18 @@ public class Repository {
         }
     }
 
+    /**
+     * remove event from local DB
+     * @param id event id
+     */
     void deleteEvent(long id) {
         eventDao.deleteEvent(id, MainActivity.userId);
     }
 
+    /**
+     * insert task into local DB
+     * @param t task
+     */
     void insertTask(Task t) {
         if(t.deleted) {
             deleteTask(t.id);
@@ -130,14 +168,27 @@ public class Repository {
         }
     }
 
+    /**
+     * get all tasks
+     * @return List of tasks
+     */
     List<Task> getTasks() {
         return taskDao.getTasks(MainActivity.userId);
     }
 
+    /**
+     * Get a single task
+     * @param id task id
+     * @return task
+     */
     Task getTaskById(long id) {
         return taskDao.getTaskById(id, MainActivity.userId);
     }
 
+    /**
+     * delete a single task
+     * @param id task id
+     */
     void deleteTask(long id) {
         taskDao.deleteTask(id, MainActivity.userId);
     }

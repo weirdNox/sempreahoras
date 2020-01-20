@@ -89,6 +89,9 @@ public class StopwatchFragment extends Fragment implements UpdatableUi {
         return v;
     }
 
+    /**
+     * starts timer
+     */
     private void startTimer() {
         timer = new CountDownTimer(timerFinishTime-timeInMillis, 100) {
             @Override
@@ -106,6 +109,9 @@ public class StopwatchFragment extends Fragment implements UpdatableUi {
         }.start();
     }
 
+    /**
+     * cancels timer
+     */
     private void cancelTimer() {
         if(timer != null) {
             timer.cancel();

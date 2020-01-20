@@ -13,6 +13,11 @@ public abstract class LocalDatabase extends RoomDatabase {
 
     static volatile LocalDatabase INSTANCE;
 
+    /**
+     * get singleton instance
+     * @param context app context
+     * @return instance
+     */
     static LocalDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {
             synchronized (LocalDatabase.class) {

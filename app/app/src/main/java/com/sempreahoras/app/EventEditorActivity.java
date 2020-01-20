@@ -240,6 +240,9 @@ public class EventEditorActivity extends AppCompatActivity {
         updateUi();
     }
 
+    /**
+     * Update UI by updating times
+     */
     void updateUi() {
         Date start = new Date(e.startMillis);
         Date end   = new Date(e.startMillis + e.durationMillis);

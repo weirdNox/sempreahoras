@@ -49,10 +49,19 @@ public class ServerSyncer {
         repo = new Repository(context);
     }
 
+    /**
+     * get url for path
+     * @param path wanted path
+     * @return url
+     */
     private String getUrl(String path) {
         return host + path;
     }
 
+    /**
+     * get new data from server
+     * @param post callback
+     */
     void fetchNewData(SimpleCallback post) {
         if(isNetworkAvailable(context)) {
             StringRequest request = new StringRequest(Request.Method.GET,
@@ -99,6 +108,11 @@ public class ServerSyncer {
         }
     }
 
+    /**
+     * send event to server DB (new or update)
+     * @param event event
+     * @param post callback
+     */
     void sendNewEvent(Event event, EventCallback post) {
         event.ensureConsistency();
 
@@ -135,6 +149,12 @@ public class ServerSyncer {
         }
     }
 
+    /**
+     * delete event from server DB
+     * @param eventId event id
+     * @param userId user id
+     * @param post callback
+     */
     void deleteEvent(long eventId, String userId, SimpleCallback post) {
         if(isNetworkAvailable(context)) {
             StringRequest request = new StringRequest(Request.Method.POST, getUrl("deleteEvent"),
@@ -154,6 +174,11 @@ public class ServerSyncer {
         }
     }
 
+    /**
+     * send task to server DB (new or update)
+     * @param task task
+     * @param post callback
+     */
     void sendNewTask(Task task, TaskCallback post) {
         if(isNetworkAvailable(context)) {
             try {
@@ -188,6 +213,12 @@ public class ServerSyncer {
         }
     }
 
+    /**
+     * Delete task from server DB
+     * @param taskId task id
+     * @param userId user id
+     * @param post callback
+     */
     void deleteTask(long taskId, String userId, SimpleCallback post) {
         if(isNetworkAvailable(context)) {
             StringRequest request = new StringRequest(Request.Method.POST, getUrl("deleteTask"),
@@ -207,6 +238,11 @@ public class ServerSyncer {
         }
     }
 
+    /**
+     * check if there is network connectivity
+     * @param context app context
+     * @return true if network is enabled and connected, false otherwise (does not guarantee connectivity to _server_)
+     */
     public static boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();

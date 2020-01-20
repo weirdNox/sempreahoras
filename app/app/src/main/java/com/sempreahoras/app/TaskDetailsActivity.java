@@ -58,6 +58,7 @@ public class TaskDetailsActivity extends AppCompatActivity {
         return true;
     }
 
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case OPTION_EDIT: {
@@ -85,6 +86,9 @@ public class TaskDetailsActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Updated UI, ensuring consistency
+     */
     void updateUi() {
         Task t = repo.getTaskById(taskId);
 

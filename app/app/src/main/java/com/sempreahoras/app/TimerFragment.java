@@ -112,6 +112,9 @@ public class TimerFragment extends Fragment implements UpdatableUi {
         return v;
     }
 
+    /**
+     * starts timer and handles alarm
+     */
     private void startTimer() {
         Intent intent = new Intent(context, AlarmReceiver.class);
         intent.putExtra(AlarmReceiver.INTENT_TYPE, AlarmReceiver.TYPE_TIMER);
@@ -134,6 +137,9 @@ public class TimerFragment extends Fragment implements UpdatableUi {
         }.start();
     }
 
+    /**
+     * cancel timer and alarm
+     */
     private void cancelTimer() {
         alarmManager.cancel(pendingIntent);
 

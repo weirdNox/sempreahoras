@@ -70,6 +70,10 @@ public class DayFragment extends Fragment implements UpdatableUi {
         return v;
     }
 
+    /**
+     * Updates the UI, by checking consistency, fetching events for the selected dates,
+     * and redrawing the view
+     */
     public void updateUi() {
         if(v != null) {
             if(numDays == 7) {
@@ -103,11 +107,19 @@ public class DayFragment extends Fragment implements UpdatableUi {
         }
     }
 
+    /**
+     * Change to previous or next group of days, depending on velocity
+     * @param velX if positive, goes to the next; else, go to the previous
+     */
     void changeTo(float velX) {
         a.selectedDate.set(Calendar.DAY_OF_YEAR, a.selectedDate.get(Calendar.DAY_OF_YEAR) + (velX > 0 ? numDays : -numDays));
         updateUi();
     }
 
+    /**
+     * View a single day
+     * @param dayIdx index of the day in the current group to view
+     */
     void gotoDay(int dayIdx) {
         numDays = 1;
         a.selectedDate.set(Calendar.DAY_OF_YEAR, a.selectedDate.get(Calendar.DAY_OF_YEAR) + dayIdx);

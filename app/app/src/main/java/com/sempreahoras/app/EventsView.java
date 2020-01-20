@@ -150,6 +150,9 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         }
     }
 
+    /**
+     * @return scroll needed, considering headers
+     */
     float getEffectiveScroll() {
         return -scrollY + (numberOfDays > 1 ? headerHeight : 0) + (allDayMax > 0 ? allDayMax * allDayHeight + allDayExtra : 0);
     }
@@ -320,6 +323,13 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         }
     }
 
+    /**
+     * creates the rect for drawing an event
+     * @param e the event
+     * @param dayIdx which day it belongs to
+     * @param dayStartMillis when the day starts
+     * @return
+     */
     private RectF getEventRect(Event e, int dayIdx, long dayStartMillis) {
         float top, bottom;
 
@@ -344,6 +354,12 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         return new RectF(left, top, right, bottom);
     }
 
+    /**
+     * get rect for drawing all day events
+     * @param dayIdx which day
+     * @param allDayIdx the index of the event (of this type)
+     * @return
+     */
     private RectF getAllDayRect(int dayIdx, int allDayIdx) {
         float left  = columWidth* dayIdx;
         float right = columWidth*(dayIdx+1);
@@ -468,6 +484,9 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         return result;
     }
 
+    /**
+     * Implements the scroller after flings
+     */
     private class AnimScroller implements Runnable {
         @Override
         public void run() {
@@ -483,6 +502,12 @@ public class EventsView extends View implements GestureDetector.OnGestureListene
         }
     }
 
+    /**
+     * Update event data to be displayed
+     * @param eventArray list of List of normal events, a List for each day
+     * @param allDayEvents list of List of all day events, a List for each day
+     * @param firstDayStartMillis millis (since epoch) of the start of the first day in this group
+     */
     public void setEvents(List<Event>[] eventArray, List<Event>[] allDayEvents, long firstDayStartMillis) {
         assert(eventArray.length == allDayEvents.length);
 

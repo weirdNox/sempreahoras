@@ -46,6 +46,7 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    @Override
     protected void onStart() {
         super.onStart();
 
@@ -72,6 +73,10 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    /**
+     * Go to main activity
+     * @param account google account
+     */
     private void updateUI(GoogleSignInAccount account) {
         if (account != null) {
             Intent intent = new Intent(this, MainActivity.class);
@@ -80,6 +85,10 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    /**
+     * login to a test account
+     * @param v ignored
+     */
     public void testSignIn(View v) {
         Intent intent = new Intent(this, MainActivity.class);
         startActivityForResult(intent, MAIN);
